@@ -129,6 +129,17 @@ header h1 {
   color: #22c55e;
 }
 
+.bw-feedback {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #22c55e;
+  transition: opacity 0.3s;
+}
+
+.bw-feedback.hidden {
+  display: none;
+}
+
 /* Category Filter */
 .category-filter {
   display: flex;
@@ -770,6 +781,16 @@ header h1 {
 /* Day summary */
 .cal-day-summary {
   margin-bottom: 16px;
+}
+
+.cal-summary-bodyweight {
+  padding: 10px 12px;
+  background: #eff6ff;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: var(--primary);
 }
 
 .cal-summary-exercise {

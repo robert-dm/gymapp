@@ -143,6 +143,15 @@
     // --- Body Weight ---
     const bwInput = document.getElementById('bw-input');
     const bwSave = document.getElementById('bw-save');
+    const bwFeedback = document.getElementById('bw-feedback');
+    let bwFeedbackTimer = null;
+
+    function showBwFeedback(msg) {
+      bwFeedback.textContent = msg;
+      bwFeedback.classList.remove('hidden');
+      clearTimeout(bwFeedbackTimer);
+      bwFeedbackTimer = setTimeout(() => bwFeedback.classList.add('hidden'), 2000);
+    }
 
     async function loadBodyWeight() {
       const data = await API.getBodyWeight();
@@ -160,9 +169,11 @@
       if (!val) {
         await API.deleteBodyWeight();
         bwSave.classList.remove('saved');
+        showBwFeedback(getLang() === 'es' ? 'Eliminado' : 'Deleted');
       } else {
         await API.saveBodyWeight(val);
         bwSave.classList.add('saved');
+        showBwFeedback(getLang() === 'es' ? 'Guardado!' : 'Saved!');
       }
     });
 
@@ -329,20 +340,27 @@
       btnUploadPhoto.textContent = t('uploadPhoto');
       calDayDetail.classList.remove('hidden');
 
-      // Load summary and photos in parallel
-      const [dayLogs, dayCompleted, photos] = await Promise.all([
+      // Load summary, photos, and body weight in parallel
+      const [dayLogs, dayCompleted, photos, bw] = await Promise.all([
         API.getLogs(dateStr),
         API.getCompleted(dateStr),
         API.getPhotos(dateStr),
+        API.getBodyWeight(dateStr),
       ]);
       calPhotos = photos;
-      renderCalDaySummary(dayLogs, dayCompleted);
+      renderCalDaySummary(dayLogs, dayCompleted, bw);
       renderCalPhotos();
     }
 
-    function renderCalDaySummary(logs, completedIds) {
+    function renderCalDaySummary(logs, completedIds, bodyWeight) {
       const lang = getLang();
-      if (logs.length === 0 && completedIds.length === 0) {
+      let bwHtml = '';
+      if (bodyWeight && bodyWeight.weight) {
+        const label = lang === 'es' ? 'Peso corporal' : 'Body weight';
+        bwHtml = `<div class="cal-summary-bodyweight">&#9878; ${label}: <strong>${bodyWeight.weight} kg</strong></div>`;
+      }
+
+      if (logs.length === 0 && completedIds.length === 0 && !bwHtml) {
         calDaySummary.innerHTML = `<div class="empty-state">${t('noLogsDate')}</div>`;
         return;
       }
@@ -372,7 +390,7 @@
         }
       });
 
-      calDaySummary.innerHTML = Object.values(grouped).map(g => {
+      const exercisesHtml = Object.values(grouped).map(g => {
         const check = g.completed ? `<span class="completed-check">&#10003;</span>` : '';
         const setsHtml = g.sets.map(s => {
           let w = s.weight || '-';
@@ -386,6 +404,7 @@
             ${setsHtml ? `<div class="exercise-sets">${setsHtml}</div>` : ''}
           </div>`;
       }).join('');
+      calDaySummary.innerHTML = bwHtml + exercisesHtml;
     }
 
     function renderCalPhotos() {
