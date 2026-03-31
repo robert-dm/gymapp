@@ -281,16 +281,75 @@
       });
     }
 
+    const calDaySummary = document.getElementById('cal-day-summary');
+    const calDayPhotosTitle = document.getElementById('cal-day-photos-title');
+
     async function selectCalDay(dateStr) {
       calSelectedDate = dateStr;
       renderCalendar();
 
-      calDayTitle.textContent = `${t('photos')} — ${dateStr}`;
+      calDayTitle.textContent = dateStr;
+      calDayPhotosTitle.textContent = t('photos');
       btnUploadPhoto.textContent = t('uploadPhoto');
       calDayDetail.classList.remove('hidden');
 
-      calPhotos = await API.getPhotos(dateStr);
+      // Load summary and photos in parallel
+      const [dayLogs, dayCompleted, photos] = await Promise.all([
+        API.getLogs(dateStr),
+        API.getCompleted(dateStr),
+        API.getPhotos(dateStr),
+      ]);
+      calPhotos = photos;
+      renderCalDaySummary(dayLogs, dayCompleted);
       renderCalPhotos();
+    }
+
+    function renderCalDaySummary(logs, completedIds) {
+      const lang = getLang();
+      if (logs.length === 0 && completedIds.length === 0) {
+        calDaySummary.innerHTML = `<div class="empty-state">${t('noLogsDate')}</div>`;
+        return;
+      }
+      // Group logs by exercise
+      const grouped = {};
+      logs.forEach(log => {
+        if (!grouped[log.exercise_id]) {
+          grouped[log.exercise_id] = {
+            name: lang === 'es' ? log.name_es : log.name_en,
+            sets: [],
+            completed: completedIds.includes(log.exercise_id),
+          };
+        }
+        grouped[log.exercise_id].sets.push(log);
+      });
+      // Add completed exercises with no logs
+      completedIds.forEach(id => {
+        if (!grouped[id]) {
+          const ex = exercises.find(e => e.id === id);
+          if (ex) {
+            grouped[id] = {
+              name: lang === 'es' ? ex.name_es : ex.name_en,
+              sets: [],
+              completed: true,
+            };
+          }
+        }
+      });
+
+      calDaySummary.innerHTML = Object.values(grouped).map(g => {
+        const check = g.completed ? `<span class="completed-check">&#10003;</span>` : '';
+        const setsHtml = g.sets.map(s => {
+          let w = s.weight || '-';
+          if (s.per_side && s.weight) w = `${s.weight}/${lang === 'es' ? 'lado' : 'side'} (${s.weight * 2} total)`;
+          else if (s.weight) w = `${s.weight} total`;
+          return `${t('set')} ${s.set_number}: ${s.reps || '-'} reps x ${w}`;
+        }).join('<br>');
+        return `
+          <div class="cal-summary-exercise">
+            <div class="exercise-name">${check}${g.name}</div>
+            ${setsHtml ? `<div class="exercise-sets">${setsHtml}</div>` : ''}
+          </div>`;
+      }).join('');
     }
 
     function renderCalPhotos() {

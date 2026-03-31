@@ -586,20 +586,28 @@ header h1 {
 }
 
 /* Calendar */
+.calendar-grid {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
 .calendar-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-cal-nav {
   background: none;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 6px 12px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--text);
 }
 
@@ -609,29 +617,29 @@ header h1 {
 
 .cal-month-label {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text);
 }
 
 .cal-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: 2px;
+  margin-bottom: 2px;
 }
 
 .cal-header-cell {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-secondary);
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 .cal-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 2px;
 }
 
 .cal-day {
@@ -639,8 +647,8 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   position: relative;
@@ -686,16 +694,16 @@ header h1 {
 
 .cal-day .photo-dot {
   position: absolute;
-  bottom: 3px;
-  width: 5px;
-  height: 5px;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--primary);
 }
 
 /* Day detail */
 .cal-day-detail {
-  margin-top: 20px;
+  margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
@@ -705,12 +713,45 @@ header h1 {
 }
 
 .cal-day-detail h3 {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+}
+
+/* Day summary */
+.cal-day-summary {
+  margin-bottom: 16px;
+}
+
+.cal-summary-exercise {
+  padding: 10px 12px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 6px;
+}
+
+.cal-summary-exercise .exercise-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-summary-exercise .exercise-name .completed-check {
+  color: #22c55e;
+  font-size: 0.8rem;
+}
+
+.cal-summary-exercise .exercise-sets {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .cal-day-photos {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
