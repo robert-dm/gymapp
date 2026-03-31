@@ -899,6 +899,31 @@ const EXERCISE_ICONS = {
   </svg>`,
 
   // ===== NEW SHOULDERS =====
+  press_sentado_mancuernas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="28" y="52" width="24" height="3" rx="1"/>
+    <circle cx="40" cy="24" r="5"/>
+    <line x1="40" y1="29" x2="40" y2="52"/>
+    <line x1="40" y1="34" x2="28" y2="12"/>
+    <line x1="40" y1="34" x2="52" y2="12"/>
+    <rect x="24" y="8" width="8" height="4" rx="1"/>
+    <rect x="48" y="8" width="8" height="4" rx="1"/>
+    <line x1="40" y1="55" x2="34" y2="70"/>
+    <line x1="40" y1="55" x2="46" y2="70"/>
+  </svg>`,
+
+  press_tras_nuca: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="28" y="52" width="24" height="3" rx="1"/>
+    <circle cx="40" cy="24" r="5"/>
+    <line x1="40" y1="29" x2="40" y2="52"/>
+    <line x1="40" y1="30" x2="26" y2="14"/>
+    <line x1="40" y1="30" x2="54" y2="14"/>
+    <line x1="20" y1="14" x2="60" y2="14"/>
+    <circle cx="18" cy="14" r="3"/>
+    <circle cx="62" cy="14" r="3"/>
+    <line x1="40" y1="55" x2="34" y2="70"/>
+    <line x1="40" y1="55" x2="46" y2="70"/>
+  </svg>`,
+
   press_arnold: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="28" y="52" width="24" height="3" rx="1"/>
     <circle cx="40" cy="24" r="5"/>
