@@ -125,5 +125,27 @@ const API = {
   async deletePhoto(id) {
     const res = await fetch(`/api/photos/${id}`, { method: 'DELETE', headers: this._headers() });
     return res.json();
+  },
+
+  // Body weight
+  async getBodyWeight(date) {
+    const q = date ? `?date=${date}` : '';
+    const res = await fetch(`/api/bodyweight${q}`, { headers: this._headers() });
+    return res.json();
+  },
+
+  async saveBodyWeight(weight, date) {
+    const res = await fetch('/api/bodyweight', {
+      method: 'POST',
+      headers: this._headers(),
+      body: JSON.stringify({ weight, date })
+    });
+    return res.json();
+  },
+
+  async deleteBodyWeight(date) {
+    const q = date ? `?date=${date}` : '';
+    const res = await fetch(`/api/bodyweight${q}`, { method: 'DELETE', headers: this._headers() });
+    return res.json();
   }
 };

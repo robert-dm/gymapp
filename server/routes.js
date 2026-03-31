@@ -6,6 +6,7 @@ const { Exercise, WorkoutLog, CompletedExercise } = require('./db');
 const { verifyGoogleToken, generateToken, authMiddleware } = require('./auth');
 const User = require('./models/User');
 const Photo = require('./models/Photo');
+const BodyWeight = require('./models/BodyWeight');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -211,6 +212,35 @@ router.delete('/photos/:id', async (req, res) => {
   try { await cloudinary.uploader.destroy(photo.public_id); } catch {}
   await photo.deleteOne();
   res.json({ deleted: 1 });
+});
+
+// --- Body Weight ---
+
+// Get body weight for a date
+router.get('/bodyweight', async (req, res) => {
+  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const entry = await BodyWeight.findOne({ user_id: req.userId, date }).lean();
+  res.json(entry ? { weight: entry.weight, date: entry.date } : null);
+});
+
+// Save/update body weight for a date
+router.post('/bodyweight', async (req, res) => {
+  const { weight, date } = req.body;
+  if (!weight) return res.status(400).json({ error: 'weight is required' });
+  const d = date || new Date().toISOString().slice(0, 10);
+  await BodyWeight.updateOne(
+    { user_id: req.userId, date: d },
+    { user_id: req.userId, date: d, weight },
+    { upsert: true }
+  );
+  res.json({ ok: true });
+});
+
+// Delete body weight for a date
+router.delete('/bodyweight', async (req, res) => {
+  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  await BodyWeight.deleteOne({ user_id: req.userId, date });
+  res.json({ ok: true });
 });
 
 module.exports = router;

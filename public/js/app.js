@@ -140,6 +140,42 @@
     completedIds = new Set(await API.getCompleted(selectedDate));
     renderAll();
 
+    // --- Body Weight ---
+    const bwInput = document.getElementById('bw-input');
+    const bwSave = document.getElementById('bw-save');
+
+    async function loadBodyWeight() {
+      const data = await API.getBodyWeight();
+      if (data && data.weight) {
+        bwInput.value = data.weight;
+        bwSave.classList.add('saved');
+      } else {
+        bwInput.value = '';
+        bwSave.classList.remove('saved');
+      }
+    }
+
+    bwSave.addEventListener('click', async () => {
+      const val = parseFloat(bwInput.value);
+      if (!val) {
+        await API.deleteBodyWeight();
+        bwSave.classList.remove('saved');
+      } else {
+        await API.saveBodyWeight(val);
+        bwSave.classList.add('saved');
+      }
+    });
+
+    bwInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') bwSave.click();
+    });
+
+    bwInput.addEventListener('input', () => {
+      bwSave.classList.remove('saved');
+    });
+
+    loadBodyWeight();
+
     // Modal date picker
     modalDate.addEventListener('change', async () => {
       selectedDate = modalDate.value;
