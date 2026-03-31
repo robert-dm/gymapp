@@ -784,4 +784,274 @@ const EXERCISE_ICONS = {
     <line x1="44" y1="54" x2="46" y2="58"/>
     <line x1="46" y1="58" x2="50" y2="62"/>
   </svg>`,
+
+  // ===== NEW CHEST =====
+  press_banca_mancuernas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="52" width="50" height="4" rx="1"/>
+    <line x1="20" y1="56" x2="20" y2="68"/>
+    <line x1="60" y1="56" x2="60" y2="68"/>
+    <circle cx="22" cy="44" r="5"/>
+    <line x1="27" y1="44" x2="55" y2="44"/>
+    <line x1="32" y1="44" x2="30" y2="28"/>
+    <line x1="48" y1="44" x2="50" y2="28"/>
+    <rect x="26" y="24" width="8" height="4" rx="1"/>
+    <rect x="46" y="24" width="8" height="4" rx="1"/>
+    <line x1="55" y1="44" x2="62" y2="56"/>
+    <line x1="62" y1="56" x2="62" y2="68"/>
+  </svg>`,
+
+  press_inclinado_mancuernas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="65" x2="45" y2="65"/>
+    <line x1="45" y1="65" x2="55" y2="35"/>
+    <line x1="18" y1="65" x2="18" y2="72"/>
+    <line x1="45" y1="65" x2="45" y2="72"/>
+    <circle cx="50" cy="30" r="5"/>
+    <line x1="48" y1="35" x2="32" y2="58"/>
+    <line x1="44" y1="38" x2="36" y2="18"/>
+    <line x1="52" y1="35" x2="56" y2="18"/>
+    <rect x="32" y="14" width="8" height="4" rx="1"/>
+    <rect x="52" y="14" width="8" height="4" rx="1"/>
+    <line x1="32" y1="58" x2="25" y2="68"/>
+    <line x1="32" y1="58" x2="38" y2="68"/>
+  </svg>`,
+
+  aperturas_inclinadas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="65" x2="45" y2="65"/>
+    <line x1="45" y1="65" x2="55" y2="35"/>
+    <line x1="18" y1="65" x2="18" y2="72"/>
+    <line x1="45" y1="65" x2="45" y2="72"/>
+    <circle cx="50" cy="30" r="5"/>
+    <line x1="48" y1="35" x2="32" y2="58"/>
+    <line x1="44" y1="36" x2="30" y2="22"/>
+    <line x1="52" y1="33" x2="64" y2="18"/>
+    <rect x="26" y="18" width="8" height="4" rx="1"/>
+    <rect x="60" y="14" width="8" height="4" rx="1"/>
+    <line x1="32" y1="58" x2="25" y2="68"/>
+    <line x1="32" y1="58" x2="38" y2="68"/>
+  </svg>`,
+
+  contractora: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="30" y="56" width="20" height="3" rx="1"/>
+    <line x1="40" y1="59" x2="40" y2="68"/>
+    <rect x="36" y="8" width="8" height="52" rx="2"/>
+    <circle cx="40" cy="26" r="5"/>
+    <line x1="40" y1="31" x2="40" y2="56"/>
+    <path d="M36 34 Q22 30 20 20" fill="none"/>
+    <path d="M44 34 Q58 30 60 20" fill="none"/>
+    <line x1="40" y1="38" x2="26" y2="28"/>
+    <line x1="40" y1="38" x2="54" y2="28"/>
+    <line x1="40" y1="56" x2="34" y2="70"/>
+    <line x1="40" y1="56" x2="46" y2="70"/>
+  </svg>`,
+
+  press_maquina_pecho: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="58" y="10" width="6" height="58" rx="1"/>
+    <rect x="30" y="54" width="20" height="3" rx="1"/>
+    <circle cx="40" cy="28" r="5"/>
+    <line x1="40" y1="33" x2="40" y2="54"/>
+    <line x1="40" y1="38" x2="56" y2="32"/>
+    <line x1="40" y1="38" x2="56" y2="42"/>
+    <line x1="56" y1="32" x2="58" y2="32"/>
+    <line x1="56" y1="42" x2="58" y2="42"/>
+    <line x1="40" y1="57" x2="34" y2="70"/>
+    <line x1="40" y1="57" x2="46" y2="70"/>
+  </svg>`,
+
+  fondos_pecho: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="10" y1="24" x2="30" y2="24"/>
+    <line x1="50" y1="24" x2="70" y2="24"/>
+    <line x1="10" y1="24" x2="10" y2="68"/>
+    <line x1="70" y1="24" x2="70" y2="68"/>
+    <circle cx="40" cy="30" r="5"/>
+    <line x1="40" y1="35" x2="40" y2="55"/>
+    <line x1="40" y1="38" x2="30" y2="26"/>
+    <line x1="40" y1="38" x2="50" y2="26"/>
+    <line x1="40" y1="55" x2="36" y2="68"/>
+    <line x1="40" y1="55" x2="44" y2="68"/>
+    <line x1="40" y1="35" x2="40" y2="32" stroke-dasharray="2,1"/>
+  </svg>`,
+
+  // ===== NEW BACK =====
+  jalon_agarre_cerrado: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="40" y1="4" x2="40" y2="12"/>
+    <line x1="34" y1="12" x2="46" y2="12"/>
+    <line x1="40" y1="12" x2="40" y2="22" stroke-dasharray="3,2"/>
+    <line x1="34" y1="22" x2="46" y2="22"/>
+    <circle cx="40" cy="30" r="5"/>
+    <line x1="40" y1="35" x2="40" y2="55"/>
+    <line x1="40" y1="38" x2="35" y2="24"/>
+    <line x1="40" y1="38" x2="45" y2="24"/>
+    <rect x="32" y="55" width="16" height="3" rx="1"/>
+    <line x1="40" y1="58" x2="34" y2="70"/>
+    <line x1="40" y1="58" x2="46" y2="70"/>
+  </svg>`,
+
+  remo_maquina: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="56" y="10" width="6" height="56" rx="1"/>
+    <rect x="26" y="48" width="22" height="3" rx="1"/>
+    <circle cx="36" cy="30" r="5"/>
+    <line x1="36" y1="35" x2="36" y2="48"/>
+    <line x1="36" y1="40" x2="54" y2="34"/>
+    <line x1="36" y1="40" x2="54" y2="44"/>
+    <rect x="22" y="46" width="4" height="8" rx="1"/>
+    <line x1="36" y1="51" x2="30" y2="66"/>
+    <line x1="36" y1="51" x2="42" y2="66"/>
+  </svg>`,
+
+  // ===== NEW SHOULDERS =====
+  press_arnold: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="28" y="52" width="24" height="3" rx="1"/>
+    <circle cx="40" cy="24" r="5"/>
+    <line x1="40" y1="29" x2="40" y2="52"/>
+    <line x1="40" y1="34" x2="26" y2="14"/>
+    <line x1="40" y1="34" x2="54" y2="14"/>
+    <rect x="22" y="10" width="8" height="4" rx="1"/>
+    <rect x="50" y="10" width="8" height="4" rx="1"/>
+    <path d="M30 34 Q34 30 38 34" fill="none" stroke-dasharray="2,1"/>
+    <line x1="40" y1="55" x2="34" y2="70"/>
+    <line x1="40" y1="55" x2="46" y2="70"/>
+  </svg>`,
+
+  elevaciones_laterales_polea: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="10" width="6" height="56" rx="1"/>
+    <line x1="10" y1="42" x2="30" y2="42" stroke-dasharray="3,2"/>
+    <circle cx="40" cy="22" r="5"/>
+    <line x1="40" y1="27" x2="40" y2="52"/>
+    <line x1="40" y1="34" x2="60" y2="22"/>
+    <line x1="40" y1="34" x2="28" y2="40"/>
+    <line x1="40" y1="52" x2="34" y2="68"/>
+    <line x1="40" y1="52" x2="46" y2="68"/>
+  </svg>`,
+
+  vuelos_maquina: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="36" y="8" width="8" height="52" rx="2"/>
+    <circle cx="40" cy="26" r="5"/>
+    <line x1="40" y1="31" x2="40" y2="56"/>
+    <line x1="40" y1="36" x2="18" y2="28"/>
+    <line x1="40" y1="36" x2="62" y2="28"/>
+    <path d="M18 28 Q16 18 20 12" fill="none"/>
+    <path d="M62 28 Q64 18 60 12" fill="none"/>
+    <line x1="40" y1="56" x2="34" y2="70"/>
+    <line x1="40" y1="56" x2="46" y2="70"/>
+  </svg>`,
+
+  // ===== NEW BICEPS =====
+  curl_barra_z: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="40" cy="16" r="5"/>
+    <line x1="40" y1="21" x2="40" y2="48"/>
+    <line x1="40" y1="34" x2="32" y2="46"/>
+    <line x1="40" y1="34" x2="48" y2="46"/>
+    <!-- EZ bar with zigzag -->
+    <polyline points="20,46 28,44 36,48 44,44 52,48 60,46"/>
+    <circle cx="18" cy="46" r="3"/>
+    <circle cx="62" cy="46" r="3"/>
+    <line x1="40" y1="48" x2="34" y2="68"/>
+    <line x1="40" y1="48" x2="46" y2="68"/>
+  </svg>`,
+
+  curl_polea: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="10" width="6" height="56" rx="1"/>
+    <line x1="10" y1="58" x2="30" y2="48" stroke-dasharray="3,2"/>
+    <circle cx="40" cy="16" r="5"/>
+    <line x1="40" y1="21" x2="40" y2="50"/>
+    <line x1="40" y1="34" x2="32" y2="46"/>
+    <line x1="40" y1="34" x2="48" y2="40"/>
+    <line x1="40" y1="50" x2="34" y2="68"/>
+    <line x1="40" y1="50" x2="46" y2="68"/>
+  </svg>`,
+
+  // ===== NEW TRICEPS =====
+  copa_mancuerna: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="40" cy="20" r="5"/>
+    <line x1="40" y1="25" x2="40" y2="52"/>
+    <line x1="40" y1="30" x2="34" y2="14"/>
+    <line x1="40" y1="30" x2="46" y2="14"/>
+    <line x1="34" y1="14" x2="46" y2="14"/>
+    <rect x="36" y="8" width="8" height="6" rx="1"/>
+    <line x1="40" y1="52" x2="34" y2="68"/>
+    <line x1="40" y1="52" x2="46" y2="68"/>
+  </svg>`,
+
+  press_cerrado: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="52" width="50" height="4" rx="1"/>
+    <line x1="20" y1="56" x2="20" y2="68"/>
+    <line x1="60" y1="56" x2="60" y2="68"/>
+    <circle cx="22" cy="44" r="5"/>
+    <line x1="27" y1="44" x2="55" y2="44"/>
+    <line x1="36" y1="44" x2="36" y2="28"/>
+    <line x1="44" y1="44" x2="44" y2="28"/>
+    <line x1="28" y1="28" x2="52" y2="28"/>
+    <circle cx="26" cy="28" r="3"/>
+    <circle cx="54" cy="28" r="3"/>
+    <line x1="55" y1="44" x2="62" y2="56"/>
+    <line x1="62" y1="56" x2="62" y2="68"/>
+  </svg>`,
+
+  // ===== NEW LEGS =====
+  sentadilla_hack: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="56" y="8" width="6" height="60" rx="1"/>
+    <line x1="56" y1="20" x2="46" y2="20"/>
+    <circle cx="40" cy="24" r="5"/>
+    <line x1="40" y1="29" x2="40" y2="46"/>
+    <line x1="40" y1="34" x2="50" y2="24"/>
+    <line x1="40" y1="34" x2="50" y2="38"/>
+    <line x1="40" y1="46" x2="36" y2="58"/>
+    <line x1="36" y1="58" x2="34" y2="68"/>
+    <line x1="40" y1="46" x2="44" y2="58"/>
+    <line x1="44" y1="58" x2="42" y2="68"/>
+  </svg>`,
+
+  sentadilla_bulgara: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="52" y="46" width="16" height="4" rx="1"/>
+    <line x1="56" y1="50" x2="56" y2="64"/>
+    <line x1="64" y1="50" x2="64" y2="64"/>
+    <circle cx="30" cy="18" r="5"/>
+    <line x1="30" y1="23" x2="30" y2="44"/>
+    <line x1="30" y1="44" x2="24" y2="58"/>
+    <line x1="24" y1="58" x2="22" y2="68"/>
+    <line x1="30" y1="44" x2="42" y2="52"/>
+    <line x1="42" y1="52" x2="54" y2="48"/>
+    <rect x="26" y="14" width="8" height="4" rx="1"/>
+    <line x1="30" y1="30" x2="26" y2="18"/>
+    <line x1="30" y1="30" x2="34" y2="18"/>
+  </svg>`,
+
+  peso_muerto_rumano: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="36" cy="16" r="5"/>
+    <line x1="38" y1="20" x2="46" y2="42"/>
+    <line x1="42" y1="30" x2="34" y2="48"/>
+    <line x1="42" y1="30" x2="48" y2="48"/>
+    <line x1="26" y1="48" x2="56" y2="48"/>
+    <circle cx="24" cy="48" r="3"/>
+    <circle cx="58" cy="48" r="3"/>
+    <line x1="46" y1="42" x2="42" y2="64"/>
+    <line x1="46" y1="42" x2="52" y2="64"/>
+    <line x1="42" y1="64" x2="38" y2="68"/>
+    <line x1="52" y1="64" x2="56" y2="68"/>
+  </svg>`,
+
+  prensa_gemelos: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="52" y="20" width="6" height="40" rx="1"/>
+    <line x1="52" y1="34" x2="44" y2="34"/>
+    <circle cx="30" cy="32" r="5"/>
+    <line x1="30" y1="37" x2="30" y2="52"/>
+    <line x1="30" y1="52" x2="38" y2="42"/>
+    <line x1="38" y1="42" x2="48" y2="36"/>
+    <line x1="30" y1="52" x2="36" y2="60"/>
+    <line x1="36" y1="60" x2="44" y2="50"/>
+    <line x1="48" y1="36" x2="52" y2="36"/>
+    <line x1="44" y1="50" x2="52" y2="42"/>
+  </svg>`,
+
+  // ===== NEW ABS =====
+  plancha: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="38" r="5"/>
+    <line x1="23" y1="40" x2="58" y2="40"/>
+    <line x1="22" y1="44" x2="22" y2="54"/>
+    <line x1="26" y1="44" x2="26" y2="54"/>
+    <line x1="58" y1="40" x2="62" y2="54"/>
+    <line x1="58" y1="40" x2="54" y2="54"/>
+    <line x1="22" y1="54" x2="20" y2="58"/>
+    <line x1="26" y1="54" x2="28" y2="58"/>
+  </svg>`,
 };
