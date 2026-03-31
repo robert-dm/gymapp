@@ -559,8 +559,6 @@
       const nextSet = exerciseLogs.length + 1;
 
       await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
-      inputReps.value = '';
-      inputWeight.value = '';
 
       todayLogs = await API.getLogs(selectedDate);
       renderSets();
