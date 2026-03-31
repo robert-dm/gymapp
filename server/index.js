@@ -9,8 +9,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Serve config for frontend (Google Client ID)
-app.get('/config.js', (req, res) => {
+// Serve config for frontend (Google Client ID) — under /api so Vercel routes it here
+app.get('/api/config.js', (req, res) => {
   res.type('application/javascript');
   res.send(`const APP_CONFIG = { GOOGLE_CLIENT_ID: "${process.env.GOOGLE_CLIENT_ID}" };`);
 });
