@@ -182,5 +182,12 @@ const API = {
       body: JSON.stringify({ note })
     });
     return res.json();
+  },
+
+  // Dashboard
+  async getDashboard(days) {
+    const q = days ? `?days=${days}` : '';
+    const res = await fetch(`/api/dashboard${q}`, { headers: this._headers() });
+    return res.json();
   }
 };
