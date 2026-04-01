@@ -39,7 +39,7 @@ const exercises = [
   { _id: 'press_banca_mancuernas', name_es: 'Press banca con mancuernas', name_en: 'Dumbbell Bench Press', category: 'chest' },
   { _id: 'press_inclinado', name_es: 'Press inclinado con barra', name_en: 'Incline Barbell Press', category: 'chest' },
   { _id: 'press_inclinado_mancuernas', name_es: 'Press inclinado con mancuernas', name_en: 'Incline Dumbbell Press', category: 'chest' },
-  { _id: 'press_declinado', name_es: 'Press declinado', name_en: 'Decline Press', category: 'chest' },
+  { _id: 'press_declinado', name_es: 'Press inferior en banco declinado', name_en: 'Decline Bench Press', category: 'chest' },
   { _id: 'aperturas', name_es: 'Aperturas', name_en: 'Dumbbell Flyes', category: 'chest' },
   { _id: 'aperturas_inclinadas', name_es: 'Aperturas inclinadas', name_en: 'Incline Dumbbell Flyes', category: 'chest' },
   { _id: 'cruces_polea', name_es: 'Cruces en polea', name_en: 'Cable Crossover', category: 'chest' },

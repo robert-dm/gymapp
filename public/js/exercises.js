@@ -42,22 +42,22 @@ const EXERCISE_ICONS = {
   </svg>`,
 
   press_declinado: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- decline bench -->
-    <line x1="20" y1="40" x2="55" y2="55"/>
-    <line x1="20" y1="40" x2="20" y2="68"/>
-    <line x1="55" y1="55" x2="55" y2="68"/>
-    <!-- person -->
-    <circle cx="25" cy="34" r="5"/>
-    <line x1="28" y1="38" x2="52" y2="50"/>
-    <!-- arms up -->
-    <line x1="34" y1="40" x2="30" y2="22"/>
-    <line x1="44" y1="46" x2="50" y2="22"/>
-    <line x1="24" y1="22" x2="56" y2="22"/>
-    <circle cx="22" cy="22" r="3"/>
-    <circle cx="58" cy="22" r="3"/>
-    <!-- legs hooked -->
-    <line x1="52" y1="50" x2="58" y2="42"/>
-    <line x1="58" y1="42" x2="58" y2="36"/>
+    <!-- decline bench (head-end lower, feet-end higher) -->
+    <line x1="15" y1="52" x2="55" y2="38"/>
+    <line x1="15" y1="52" x2="15" y2="68"/>
+    <line x1="55" y1="38" x2="55" y2="68"/>
+    <!-- person lying head down -->
+    <circle cx="20" cy="46" r="5"/>
+    <line x1="24" y1="48" x2="52" y2="36"/>
+    <!-- arms up with barbell -->
+    <line x1="32" y1="44" x2="28" y2="26"/>
+    <line x1="42" y1="40" x2="46" y2="26"/>
+    <line x1="22" y1="26" x2="52" y2="26"/>
+    <circle cx="20" cy="26" r="3"/>
+    <circle cx="54" cy="26" r="3"/>
+    <!-- legs hooked at top end -->
+    <line x1="52" y1="36" x2="58" y2="30"/>
+    <line x1="58" y1="30" x2="58" y2="24"/>
   </svg>`,
 
   aperturas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
