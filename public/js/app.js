@@ -103,6 +103,8 @@
   let activeCategory = 'all';
   let selectedDate = localToday();
   let appInitialized = false;
+  let userRoutine = null;
+  let activeRoutineDay = 'all';
 
   async function initApp() {
     if (appInitialized) {
@@ -127,6 +129,10 @@
     const btnPerSide = document.getElementById('btn-per-side');
     const perSideTotal = document.getElementById('per-side-total');
     let perSideActive = false;
+    const btnInstructions = document.getElementById('btn-instructions');
+    const instructionsPanel = document.getElementById('instructions-panel');
+    const instructionsSteps = document.getElementById('instructions-steps');
+    const instructionsLabel = document.getElementById('instructions-label');
     const btnBack = document.getElementById('modal-back');
     const historySection = document.getElementById('history-section');
     const btnComplete = document.getElementById('btn-complete');
@@ -139,10 +145,23 @@
     const historyLog = document.getElementById('history-log');
     const modalDate = document.getElementById('modal-date');
 
+    // Routine DOM refs
+    const routineBar = document.getElementById('routine-bar');
+    const routineSelect = document.getElementById('routine-select');
+    const btnRoutine = document.getElementById('btn-routine');
+    const routineModal = document.getElementById('routine-modal');
+    const routineBack = document.getElementById('routine-back');
+    const routineModalTitle = document.getElementById('routine-modal-title');
+    const routineDaysEditor = document.getElementById('routine-days-editor');
+    const btnAddDay = document.getElementById('btn-add-day');
+    const btnSaveRoutine = document.getElementById('btn-save-routine');
+    const btnDeleteRoutine = document.getElementById('btn-delete-routine');
+
     // Init
     exercises = await API.getExercises();
     todayLogs = await API.getLogs(selectedDate);
     completedIds = new Set(await API.getCompleted(selectedDate));
+    userRoutine = await API.getRoutine();
     renderAll();
 
     // --- Body Weight ---
@@ -234,6 +253,165 @@
     });
 
     inputWeight.addEventListener('input', updatePerSideTotal);
+
+    // Instructions toggle
+    btnInstructions.addEventListener('click', () => {
+      const isOpen = !instructionsPanel.classList.contains('hidden');
+      instructionsPanel.classList.toggle('hidden');
+      btnInstructions.classList.toggle('active', !isOpen);
+    });
+
+    function renderInstructions(steps) {
+      const lang = getLang();
+      instructionsSteps.innerHTML = steps.map((step, i) => `
+        <div class="instruction-step">
+          <div class="instruction-step-number">${i + 1}</div>
+          <div class="instruction-step-icon">${step.icon}</div>
+          <div class="instruction-step-text">${step[lang]}</div>
+        </div>
+      `).join('');
+    }
+
+
+    // --- Routine ---
+    routineSelect.addEventListener('change', () => {
+      activeRoutineDay = routineSelect.value;
+      renderGrid();
+    });
+
+    function renderRoutineBar() {
+      if (!userRoutine || !userRoutine.days || userRoutine.days.length === 0) {
+        routineBar.classList.add('hidden');
+        activeRoutineDay = 'all';
+        return;
+      }
+      routineBar.classList.remove('hidden');
+      const lang = getLang();
+      let html = `<option value="all">${t('allExercises')}</option>`;
+      userRoutine.days.forEach((day, i) => {
+        const name = lang === 'es' ? day.name_es : day.name_en;
+        html += `<option value="${i}" ${activeRoutineDay === String(i) ? 'selected' : ''}>${name}</option>`;
+      });
+      routineSelect.innerHTML = html;
+    }
+
+    btnRoutine.addEventListener('click', () => {
+      routineModalTitle.textContent = t('routine');
+      btnAddDay.textContent = t('addDay');
+      btnSaveRoutine.textContent = t('saveRoutine');
+      btnDeleteRoutine.textContent = t('deleteRoutine');
+      // Clone routine for editing
+      editorDays = userRoutine && userRoutine.days ? JSON.parse(JSON.stringify(userRoutine.days)) : [];
+      renderRoutineEditor();
+      routineModal.classList.remove('hidden');
+    });
+
+    routineBack.addEventListener('click', () => {
+      routineModal.classList.add('hidden');
+    });
+
+    let editorDays = [];
+
+    btnAddDay.addEventListener('click', () => {
+      const n = editorDays.length + 1;
+      editorDays.push({ name_es: `Día ${n}`, name_en: `Day ${n}`, exercises: [] });
+      renderRoutineEditor();
+    });
+
+    btnSaveRoutine.addEventListener('click', async () => {
+      // Read current names from inputs
+      routineDaysEditor.querySelectorAll('.routine-day-card').forEach((card, i) => {
+        editorDays[i].name_es = card.querySelector('.rday-name-es').value.trim() || `Día ${i + 1}`;
+        editorDays[i].name_en = card.querySelector('.rday-name-en').value.trim() || `Day ${i + 1}`;
+      });
+      await API.saveRoutine(editorDays);
+      userRoutine = await API.getRoutine();
+      renderRoutineBar();
+      renderGrid();
+      routineModal.classList.add('hidden');
+    });
+
+    btnDeleteRoutine.addEventListener('click', async () => {
+      if (!confirm(t('confirmDeleteRoutine'))) return;
+      await API.deleteRoutine();
+      userRoutine = null;
+      activeRoutineDay = 'all';
+      renderRoutineBar();
+      renderGrid();
+      routineModal.classList.add('hidden');
+    });
+
+    function renderRoutineEditor() {
+      const lang = getLang();
+      const categories = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'legs', 'abs'];
+      routineDaysEditor.innerHTML = editorDays.map((day, di) => {
+        const exercisesByCategory = categories.map(cat => {
+          const catExercises = exercises.filter(e => e.category === cat);
+          if (catExercises.length === 0) return '';
+          const chips = catExercises.map(ex => {
+            const name = lang === 'es' ? ex.name_es : ex.name_en;
+            const sel = day.exercises.includes(ex.id) ? 'selected' : '';
+            return `<span class="routine-exercise-chip ${sel}" data-day="${di}" data-ex="${ex.id}">${name}</span>`;
+          }).join('');
+          return `<div class="routine-category-label">${t(cat)}</div><div class="routine-exercise-grid">${chips}</div>`;
+        }).join('');
+
+        return `
+          <div class="routine-day-card">
+            <div class="routine-day-header">
+              <h4>${lang === 'es' ? day.name_es : day.name_en}</h4>
+              <button class="btn-remove-day" data-day="${di}">${t('removeDay')}</button>
+            </div>
+            <div class="routine-day-inputs">
+              <input class="rday-name-es" type="text" value="${day.name_es}" placeholder="${t('dayNameEs')}">
+              <input class="rday-name-en" type="text" value="${day.name_en}" placeholder="${t('dayNameEn')}">
+            </div>
+            ${exercisesByCategory}
+          </div>
+        `;
+      }).join('');
+
+      // Chip click toggles
+      routineDaysEditor.querySelectorAll('.routine-exercise-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const di = parseInt(chip.dataset.day);
+          const exId = chip.dataset.ex;
+          const idx = editorDays[di].exercises.indexOf(exId);
+          if (idx >= 0) {
+            editorDays[di].exercises.splice(idx, 1);
+            chip.classList.remove('selected');
+          } else {
+            editorDays[di].exercises.push(exId);
+            chip.classList.add('selected');
+          }
+        });
+      });
+
+      // Remove day buttons
+      routineDaysEditor.querySelectorAll('.btn-remove-day').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!confirm(t('confirmDeleteDay'))) return;
+          // Save current input values before re-rendering
+          routineDaysEditor.querySelectorAll('.routine-day-card').forEach((card, i) => {
+            editorDays[i].name_es = card.querySelector('.rday-name-es').value.trim() || editorDays[i].name_es;
+            editorDays[i].name_en = card.querySelector('.rday-name-en').value.trim() || editorDays[i].name_en;
+          });
+          editorDays.splice(parseInt(btn.dataset.day), 1);
+          renderRoutineEditor();
+        });
+      });
+
+      // Update header on name input change
+      routineDaysEditor.querySelectorAll('.rday-name-es, .rday-name-en').forEach(input => {
+        input.addEventListener('input', () => {
+          const card = input.closest('.routine-day-card');
+          const di = [...routineDaysEditor.querySelectorAll('.routine-day-card')].indexOf(card);
+          const nameEs = card.querySelector('.rday-name-es').value;
+          const nameEn = card.querySelector('.rday-name-en').value;
+          card.querySelector('h4').textContent = lang === 'es' ? nameEs : nameEn;
+        });
+      });
+    }
 
     // --- Calendar ---
     const calendarModal = document.getElementById('calendar-modal');
@@ -591,6 +769,7 @@
       inputReps.placeholder = t('repsPlaceholder');
       inputWeight.placeholder = t('weightPlaceholder');
 
+      renderRoutineBar();
       renderCategories();
       renderGrid();
     }
@@ -612,9 +791,15 @@
 
     function renderGrid() {
       const lang = getLang();
-      const filtered = activeCategory === 'all'
+      let filtered = activeCategory === 'all'
         ? exercises
         : exercises.filter(e => e.category === activeCategory);
+
+      // Filter by routine day
+      if (activeRoutineDay !== 'all' && userRoutine && userRoutine.days[activeRoutineDay]) {
+        const dayExercises = new Set(userRoutine.days[activeRoutineDay].exercises);
+        filtered = filtered.filter(e => dayExercises.has(e.id));
+      }
 
       const todayExerciseIds = new Set(todayLogs.map(l => l.exercise_id));
 
@@ -649,6 +834,18 @@
       modalIcon.innerHTML = EXERCISE_ICONS[ex.id] || '';
       modalDate.value = selectedDate;
       modal.classList.remove('hidden');
+
+      // Instructions
+      instructionsPanel.classList.add('hidden');
+      btnInstructions.classList.remove('active');
+      const steps = EXERCISE_INSTRUCTIONS[ex.id];
+      if (steps) {
+        btnInstructions.classList.remove('hidden');
+        instructionsLabel.textContent = t('instructions');
+        renderInstructions(steps);
+      } else {
+        btnInstructions.classList.add('hidden');
+      }
 
       // Per-side default from exercise
       perSideActive = ex.per_side || false;
