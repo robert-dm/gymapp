@@ -883,6 +883,7 @@
         API.getCompleted(selectedDate),
         API.getHistory(ex.id),
       ]);
+      if (!currentExercise) return;
       todayLogs = logs;
       completedIds = new Set(completed);
       renderSets();
@@ -900,6 +901,7 @@
     }
 
     function renderSets() {
+      if (!currentExercise) return;
       const exerciseLogs = todayLogs.filter(l => l.exercise_id === currentExercise.id);
       if (exerciseLogs.length === 0) {
         setsBody.innerHTML = `<tr><td colspan="4" class="empty-state">${t('noSetsToday')}</td></tr>`;
