@@ -125,7 +125,7 @@ router.get('/logs/history/:exerciseId', async (req, res) => {
   try {
     const rows = await WorkoutLog.find({ user_id: req.userId, exercise_id: req.params.exerciseId })
       .sort({ date: -1, set_number: 1 })
-      .limit(50)
+      .limit(200)
       .lean();
     res.json(rows.map(r => ({ date: r.date, set_number: r.set_number, reps: r.reps, weight: r.weight, per_side: r.per_side || false })));
   } catch (err) {
@@ -214,6 +214,171 @@ router.get('/calendar/:year/:month', async (req, res) => {
     res.json({ trainingDates: allDates, photoDates: photos });
   } catch (err) {
     console.error('Calendar error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- Dashboard ---
+
+function dateSubtract(dateStr, days) {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() - days);
+  return d.toLocaleDateString('en-CA');
+}
+
+router.get('/dashboard', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const today = new Date().toLocaleDateString('en-CA');
+    const currentStart = dateSubtract(today, days);
+    const prevStart = dateSubtract(today, days * 2);
+
+    const [allLogs, bodyweightEntries, allExercises] = await Promise.all([
+      WorkoutLog.find({ user_id: req.userId, date: { $gt: prevStart, $lte: today } }).lean(),
+      BodyWeight.find({ user_id: req.userId, date: { $gt: prevStart, $lte: today } }).sort({ date: 1 }).lean(),
+      Exercise.find().lean(),
+    ]);
+
+    const exMap = Object.fromEntries(allExercises.map(e => [e._id, e]));
+
+    // Split logs into current and previous periods
+    const currentLogs = allLogs.filter(l => l.date > currentStart);
+    const prevLogs = allLogs.filter(l => l.date <= currentStart);
+
+    // Summary
+    const currentDates = [...new Set(currentLogs.map(l => l.date))];
+    const prevDates = [...new Set(prevLogs.map(l => l.date))];
+
+    const calcVolume = (logs) => logs.reduce((sum, l) => {
+      return sum + ((l.reps || 0) * (l.weight || 0) * (l.per_side ? 2 : 1));
+    }, 0);
+
+    // Streak: consecutive training days ending today or yesterday
+    const allTrainingDates = [...new Set(allLogs.map(l => l.date))].sort().reverse();
+    let currentStreak = 0;
+    if (allTrainingDates.length > 0) {
+      let checkDate = today;
+      // If no training today, start from yesterday
+      if (!allTrainingDates.includes(today)) {
+        checkDate = dateSubtract(today, 1);
+      }
+      const dateSet = new Set(allTrainingDates);
+      while (dateSet.has(checkDate)) {
+        currentStreak++;
+        checkDate = dateSubtract(checkDate, 1);
+      }
+    }
+
+    const summary = {
+      totalWorkouts: currentDates.length,
+      prevWorkouts: prevDates.length,
+      totalSets: currentLogs.length,
+      prevSets: prevLogs.length,
+      totalVolume: calcVolume(currentLogs),
+      prevVolume: calcVolume(prevLogs),
+      currentStreak,
+    };
+
+    // Categories
+    const catMap = {};
+    currentLogs.forEach(l => {
+      const cat = exMap[l.exercise_id]?.category || 'other';
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
+    const prevCatMap = {};
+    prevLogs.forEach(l => {
+      const cat = exMap[l.exercise_id]?.category || 'other';
+      prevCatMap[cat] = (prevCatMap[cat] || 0) + 1;
+    });
+    const categories = Object.keys(catMap)
+      .map(cat => ({ category: cat, sets: catMap[cat], prevSets: prevCatMap[cat] || 0 }))
+      .sort((a, b) => b.sets - a.sets);
+
+    // Exercise progress with per-session weight trend
+    const exGroup = (logs) => {
+      const map = {};
+      logs.forEach(l => {
+        if (!map[l.exercise_id]) map[l.exercise_id] = [];
+        map[l.exercise_id].push(l);
+      });
+      return map;
+    };
+    const allByEx = exGroup(allLogs);
+    const currentByEx = exGroup(currentLogs);
+    const prevByEx = exGroup(prevLogs);
+
+    // Also get all-time max for PR detection
+    const allTimeMaxes = {};
+    const allTimeLogs = await WorkoutLog.find({ user_id: req.userId }).lean();
+    allTimeLogs.forEach(l => {
+      const w = l.weight || 0;
+      if (!allTimeMaxes[l.exercise_id] || w > allTimeMaxes[l.exercise_id]) {
+        allTimeMaxes[l.exercise_id] = w;
+      }
+    });
+
+    const exerciseProgress = [];
+    for (const [exId, logs] of Object.entries(currentByEx)) {
+      const ex = exMap[exId];
+      if (!ex) continue;
+      const prev = prevByEx[exId] || [];
+
+      const curVol = calcVolume(logs);
+      const prvVol = calcVolume(prev);
+      const curMax = Math.max(...logs.map(l => l.weight || 0));
+      const prvMax = prev.length > 0 ? Math.max(...prev.map(l => l.weight || 0)) : 0;
+
+      // Per-session weight trend (max weight per date, across full range)
+      const allExLogs = allByEx[exId] || logs;
+      const sessionMap = {};
+      allExLogs.forEach(l => {
+        const w = l.weight || 0;
+        if (!sessionMap[l.date] || w > sessionMap[l.date]) sessionMap[l.date] = w;
+      });
+      const trend = Object.entries(sessionMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, weight]) => ({ date, weight }));
+
+      // PR detection: current max equals all-time max
+      const isPR = curMax > 0 && curMax >= (allTimeMaxes[exId] || 0);
+
+      exerciseProgress.push({
+        exercise_id: exId,
+        name_es: ex.name_es,
+        name_en: ex.name_en,
+        category: ex.category,
+        current: { maxWeight: curMax, totalVolume: curVol, sets: logs.length },
+        previous: { maxWeight: prvMax, totalVolume: prvVol, sets: prev.length },
+        volumeChange: prvVol > 0 ? Math.round(((curVol - prvVol) / prvVol) * 100) : 0,
+        trend,
+        isPR,
+      });
+    }
+    exerciseProgress.sort((a, b) => b.current.totalVolume - a.current.totalVolume);
+    const exercises = exerciseProgress.slice(0, 15);
+
+    // Volume per day trend (for chart)
+    const volByDate = {};
+    allLogs.forEach(l => {
+      const v = (l.reps || 0) * (l.weight || 0) * (l.per_side ? 2 : 1);
+      volByDate[l.date] = (volByDate[l.date] || 0) + v;
+    });
+    const volumeTrend = Object.entries(volByDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, volume]) => ({ date, volume }));
+
+    const bodyweight = bodyweightEntries.map(e => ({ date: e.date, weight: e.weight }));
+
+    res.json({
+      period: { days, currentStart, currentEnd: today, prevStart, prevEnd: currentStart },
+      summary,
+      categories,
+      exercises,
+      volumeTrend,
+      bodyweight,
+    });
+  } catch (err) {
+    console.error('Dashboard error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -431,6 +431,196 @@
 
     // --- Calendar ---
     const calendarModal = document.getElementById('calendar-modal');
+    // --- Dashboard ---
+    const btnDashboard = document.getElementById('btn-dashboard');
+    const dashboardModal = document.getElementById('dashboard-modal');
+    const dashboardBack = document.getElementById('dashboard-back');
+    const dashboardTitle = document.getElementById('dashboard-title');
+    const dashPeriod = document.getElementById('dashboard-period');
+    const dashContent = document.getElementById('dashboard-content');
+    let dashDays = 30;
+
+    btnDashboard.addEventListener('click', () => {
+      dashboardTitle.textContent = t('dashboard');
+      dashboardModal.classList.remove('hidden');
+      renderDashPeriod();
+      loadDashboard();
+    });
+
+    dashboardBack.addEventListener('click', () => {
+      dashboardModal.classList.add('hidden');
+    });
+
+    function renderDashPeriod() {
+      const periods = [
+        { days: 30, label: 'dashLast30' },
+        { days: 60, label: 'dashLast60' },
+        { days: 90, label: 'dashLast90' },
+      ];
+      dashPeriod.innerHTML = periods.map(p =>
+        `<button data-days="${p.days}" class="${p.days === dashDays ? 'active' : ''}">${t(p.label)}</button>`
+      ).join('');
+      dashPeriod.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          dashDays = parseInt(btn.dataset.days);
+          renderDashPeriod();
+          loadDashboard();
+        });
+      });
+    }
+
+    async function loadDashboard() {
+      dashContent.innerHTML = '<div class="dash-empty">...</div>';
+      const data = await API.getDashboard(dashDays);
+      renderDashboard(data);
+    }
+
+    function dashChange(current, previous) {
+      if (!previous || previous === 0) return { cls: 'dash-neutral', text: '--' };
+      const pct = Math.round(((current - previous) / previous) * 100);
+      if (pct > 0) return { cls: 'dash-up', text: `+${pct}%` };
+      if (pct < 0) return { cls: 'dash-down', text: `${pct}%` };
+      return { cls: 'dash-neutral', text: '0%' };
+    }
+
+    function renderDashboard(data) {
+      const lang = getLang();
+      const s = data.summary;
+
+      if (s.totalWorkouts === 0 && s.prevWorkouts === 0) {
+        dashContent.innerHTML = `<div class="dash-empty">${t('dashNoData')}</div>`;
+        return;
+      }
+
+      let html = '';
+
+      // Summary cards
+      const volChange = dashChange(s.totalVolume, s.prevVolume);
+      const workChange = dashChange(s.totalWorkouts, s.prevWorkouts);
+      const setChange = dashChange(s.totalSets, s.prevSets);
+
+      html += `<div class="dash-summary">
+        <div class="dash-stat-card">
+          <div class="dash-stat-value">${s.totalWorkouts}</div>
+          <div class="dash-stat-label">${t('dashWorkouts')}</div>
+          <div class="dash-stat-change ${workChange.cls}">${workChange.text}</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-value">${s.totalSets}</div>
+          <div class="dash-stat-label">${t('dashSets')}</div>
+          <div class="dash-stat-change ${setChange.cls}">${setChange.text}</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-value">${s.totalVolume.toLocaleString()}</div>
+          <div class="dash-stat-label">${t('dashVolume')}</div>
+          <div class="dash-stat-change ${volChange.cls}">${volChange.text}</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-value">${s.currentStreak}</div>
+          <div class="dash-stat-label">${t('dashStreak')}</div>
+          <div class="dash-stat-change dash-neutral">${t('dashDays')}</div>
+        </div>
+      </div>`;
+
+      // Category bars
+      if (data.categories.length > 0) {
+        const maxSets = Math.max(...data.categories.map(c => c.sets));
+        html += `<div class="dash-section-title">${t('dashCategories')}</div>`;
+        data.categories.forEach(c => {
+          const pct = Math.round((c.sets / maxSets) * 100);
+          const prevPct = maxSets > 0 ? Math.round((c.prevSets / maxSets) * 100) : 0;
+          html += `<div class="dash-bar-row">
+            <span class="dash-bar-label">${t(c.category)}</span>
+            <div class="dash-bar-track">
+              <div class="dash-bar-fill" style="width:${pct}%"></div>
+              ${c.prevSets > 0 ? `<div class="dash-bar-prev" style="left:${prevPct}%"></div>` : ''}
+            </div>
+            <span class="dash-bar-value">${c.sets}</span>
+          </div>`;
+        });
+      }
+
+      // Volume trend chart
+      if (data.volumeTrend && data.volumeTrend.length > 1) {
+        const maxVol = Math.max(...data.volumeTrend.map(v => v.volume));
+        html += `<div class="dash-section-title">${t('dashVolumeTrend')}</div>`;
+        html += `<div class="dash-vol-chart"><div class="dash-vol-bars">`;
+        data.volumeTrend.forEach(v => {
+          const h = maxVol > 0 ? Math.max(5, (v.volume / maxVol) * 100) : 5;
+          const inCurrent = v.date > data.period.currentStart;
+          const color = inCurrent ? 'var(--primary)' : 'var(--border)';
+          html += `<div class="dash-vol-bar" style="height:${h}%;background:${color}" data-tip="${v.date.slice(5)}: ${v.volume.toLocaleString()}kg"></div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      // Exercise progress with mini charts
+      if (data.exercises.length > 0) {
+        html += `<div class="dash-section-title">${t('dashExerciseProgress')}</div>`;
+        data.exercises.forEach(ex => {
+          const name = lang === 'es' ? ex.name_es : ex.name_en;
+          const vc = ex.volumeChange;
+          const arrow = vc > 0 ? '&#9650;' : vc < 0 ? '&#9660;' : '&#9679;';
+          const cls = vc > 0 ? 'dash-up' : vc < 0 ? 'dash-down' : 'dash-neutral';
+          const prBadge = ex.isPR ? `<span class="dash-pr-badge">${t('dashPR')}</span>` : '';
+
+          html += `<div class="dash-ex-card">
+            <div class="dash-ex-header">
+              <span class="dash-ex-name-lg">${name}${prBadge}</span>
+              <div class="dash-ex-meta">
+                <span class="dash-ex-weight">${ex.current.maxWeight}kg</span>
+                <span class="${cls}">${arrow} ${vc > 0 ? '+' : ''}${vc}%</span>
+              </div>
+            </div>`;
+
+          // Mini weight trend chart
+          if (ex.trend && ex.trend.length > 1) {
+            const tWeights = ex.trend.map(t => t.weight);
+            const tMin = Math.min(...tWeights.filter(w => w > 0));
+            const tMax = Math.max(...tWeights);
+            const tRange = tMax - tMin || 1;
+            html += `<div class="dash-mini-chart">`;
+            ex.trend.forEach(pt => {
+              const h = pt.weight > 0 ? Math.max(10, ((pt.weight - tMin + tRange * 0.1) / (tRange * 1.1)) * 100) : 5;
+              const inCurrent = pt.date > data.period.currentStart;
+              const color = inCurrent ? 'var(--primary)' : 'var(--border)';
+              html += `<div class="dash-mini-bar" style="height:${h}%;background:${color}"></div>`;
+            });
+            html += `</div>`;
+          }
+
+          html += `</div>`;
+        });
+      }
+
+      // Body weight sparkline
+      if (data.bodyweight.length > 1) {
+        const weights = data.bodyweight.map(b => b.weight);
+        const minW = Math.min(...weights);
+        const maxW = Math.max(...weights);
+        const range = maxW - minW || 1;
+        const first = weights[0];
+        const last = weights[weights.length - 1];
+        const diff = (last - first).toFixed(1);
+        const diffStr = diff > 0 ? `+${diff}` : diff;
+
+        html += `<div class="dash-section-title">${t('dashBodyweight')}</div>`;
+        html += `<div class="dash-sparkline">`;
+        data.bodyweight.forEach(b => {
+          const h = Math.max(10, ((b.weight - minW) / range) * 100);
+          html += `<div class="dash-spark-bar" style="height:${h}%" title="${b.date}: ${b.weight}kg"></div>`;
+        });
+        html += `</div>`;
+        html += `<div class="dash-bw-range">
+          <span>${first} kg</span>
+          <span>${last} kg (${diffStr})</span>
+        </div>`;
+      }
+
+      dashContent.innerHTML = html;
+    }
+
+    // --- Calendar ---
     const calendarBack = document.getElementById('calendar-back');
     const calMonthLabel = document.getElementById('cal-month-label');
     const calHeader = document.getElementById('cal-header');
@@ -802,6 +992,7 @@
       document.getElementById('th-reps').textContent = t('reps');
       document.getElementById('th-weight').textContent = t('weight');
       document.getElementById('history-modal-title').textContent = t('history');
+      document.getElementById('progression-title').textContent = t('progression');
       btnAddSet.textContent = t('addSet');
       inputReps.placeholder = t('repsPlaceholder');
       inputWeight.placeholder = t('weightPlaceholder');
@@ -904,6 +1095,7 @@
       exerciseNoteInput.value = noteData.note || '';
       renderSets();
       updateCompleteButton();
+      renderProgressionChart(history);
       renderExerciseHistory(history);
 
       inputReps.focus();
@@ -951,6 +1143,90 @@
           renderSets();
         });
       });
+    }
+
+    const progressionChart = document.getElementById('progression-chart');
+    const progressionTitle = document.getElementById('progression-title');
+
+    function renderProgressionChart(history) {
+      progressionTitle.textContent = t('progression');
+      if (history.length === 0) {
+        progressionChart.innerHTML = '';
+        return;
+      }
+
+      // Group by date, get max weight per session
+      const sessionMap = {};
+      history.forEach(h => {
+        const w = h.weight || 0;
+        if (!sessionMap[h.date] || w > sessionMap[h.date]) sessionMap[h.date] = w;
+      });
+
+      const sessions = Object.entries(sessionMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, weight]) => ({ date, weight }));
+
+      if (sessions.length < 2 || sessions.every(s => s.weight === 0)) {
+        progressionChart.innerHTML = `<div class="prog-empty">${t('progressionNoData')}</div>`;
+        return;
+      }
+
+      const weights = sessions.map(s => s.weight);
+      const minW = Math.min(...weights.filter(w => w > 0));
+      const maxW = Math.max(...weights);
+      const range = maxW - minW || 1;
+      const first = sessions.find(s => s.weight > 0);
+      const last = sessions[sessions.length - 1];
+      const diff = first ? last.weight - first.weight : 0;
+      const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+      const totalSessions = sessions.length;
+
+      // Volume per session (total reps × weight)
+      const volMap = {};
+      history.forEach(h => {
+        const v = (h.reps || 0) * (h.weight || 0) * (h.per_side ? 2 : 1);
+        volMap[h.date] = (volMap[h.date] || 0) + v;
+      });
+
+      let html = '<div class="prog-chart-container">';
+      html += '<div class="prog-chart-bars">';
+      sessions.forEach(s => {
+        const h = s.weight > 0 ? Math.max(12, ((s.weight - minW + range * 0.1) / (range * 1.1)) * 100) : 5;
+        const isPR = s.weight === maxW && s.weight > 0;
+        const shortDate = s.date.slice(5);
+        html += `<div class="prog-bar${isPR ? ' prog-bar-pr' : ''}" style="height:${h}%">
+          <span class="prog-tip">${shortDate}: ${s.weight}kg${isPR ? ' PR!' : ''}</span>
+        </div>`;
+      });
+      html += '</div>';
+
+      // Labels
+      if (sessions.length > 0) {
+        html += `<div class="prog-labels">
+          <span>${sessions[0].date.slice(5)}</span>
+          <span>${sessions[sessions.length - 1].date.slice(5)}</span>
+        </div>`;
+      }
+
+      // Summary stats
+      const lang = getLang();
+      html += `<div class="prog-summary">
+        <div class="prog-stat">
+          <div class="prog-stat-value">${maxW}<span style="font-size:0.7rem">kg</span></div>
+          <div class="prog-stat-label">${t('dashMaxWeight')}</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-value ${diff > 0 ? 'dash-up' : diff < 0 ? 'dash-down' : ''}">${diffStr}<span style="font-size:0.7rem">kg</span></div>
+          <div class="prog-stat-label">${lang === 'es' ? 'Cambio' : 'Change'}</div>
+        </div>
+        <div class="prog-stat">
+          <div class="prog-stat-value">${totalSessions}</div>
+          <div class="prog-stat-label">${lang === 'es' ? 'Sesiones' : 'Sessions'}</div>
+        </div>
+      </div>`;
+
+      html += '</div>';
+      progressionChart.innerHTML = html;
     }
 
     function renderExerciseHistory(history) {
