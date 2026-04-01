@@ -63,7 +63,7 @@ const exercises = [
   { _id: 'press_militar', name_es: 'Press militar', name_en: 'Military Press', category: 'shoulders' },
   { _id: 'press_sentado_mancuernas', name_es: 'Press sentado con mancuernas', name_en: 'Seated Dumbbell Press', category: 'shoulders' },
   { _id: 'press_tras_nuca', name_es: 'Press tras nuca sentado', name_en: 'Behind Neck Press', category: 'shoulders' },
-  { _id: 'press_tras_nuca_mancuernas', name_es: 'Press tras nuca con mancuernas', name_en: 'Seated Behind Neck Dumbbell Press', category: 'shoulders' },
+  { _id: 'press_tras_nuca_mancuernas', name_es: 'Press tras sentado con mancuernas', name_en: 'Seated Behind Neck Dumbbell Press', category: 'shoulders' },
   { _id: 'press_arnold', name_es: 'Press Arnold', name_en: 'Arnold Press', category: 'shoulders' },
   { _id: 'elevaciones_laterales', name_es: 'Elevaciones laterales', name_en: 'Lateral Raises', category: 'shoulders' },
   { _id: 'elevaciones_laterales_polea', name_es: 'Elevaciones laterales en polea', name_en: 'Cable Lateral Raises', category: 'shoulders' },
