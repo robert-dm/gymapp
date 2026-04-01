@@ -34,7 +34,7 @@ const WorkoutLog = mongoose.model('WorkoutLog', workoutLogSchema);
 const CompletedExercise = mongoose.model('CompletedExercise', completedExerciseSchema);
 
 const exercises = [
-  // Chest (12)
+  // Chest (13)
   { _id: 'press_banca', name_es: 'Press banca con barra', name_en: 'Barbell Bench Press', category: 'chest' },
   { _id: 'press_banca_mancuernas', name_es: 'Press banca con mancuernas', name_en: 'Dumbbell Bench Press', category: 'chest' },
   { _id: 'press_inclinado', name_es: 'Press inclinado con barra', name_en: 'Incline Barbell Press', category: 'chest' },
@@ -47,6 +47,7 @@ const exercises = [
   { _id: 'contractora', name_es: 'Contractora (Peck Deck)', name_en: 'Pec Deck Machine', category: 'chest' },
   { _id: 'press_maquina_pecho', name_es: 'Press en máquina', name_en: 'Machine Chest Press', category: 'chest' },
   { _id: 'fondos_pecho', name_es: 'Fondos para pecho', name_en: 'Chest Dips', category: 'chest' },
+  { _id: 'apertura_doble_polea', name_es: 'Apertura en doble polea', name_en: 'Double Cable Flyes', category: 'chest' },
   // Back (11)
   { _id: 'dominadas', name_es: 'Dominadas', name_en: 'Pull-ups', category: 'back' },
   { _id: 'jalon_pecho', name_es: 'Jalón al pecho', name_en: 'Lat Pulldown', category: 'back' },

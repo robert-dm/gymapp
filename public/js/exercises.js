@@ -78,6 +78,24 @@ const EXERCISE_ICONS = {
     <line x1="62" y1="55" x2="62" y2="66"/>
   </svg>`,
 
+  apertura_doble_polea: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- cable towers (low pulleys) -->
+    <rect x="4" y="14" width="6" height="52" rx="1"/>
+    <rect x="70" y="14" width="6" height="52" rx="1"/>
+    <!-- cables from low position up to hands -->
+    <line x1="10" y1="58" x2="30" y2="34" stroke-dasharray="3,2"/>
+    <line x1="70" y1="58" x2="50" y2="34" stroke-dasharray="3,2"/>
+    <!-- person standing, slightly leaning forward -->
+    <circle cx="40" cy="18" r="5"/>
+    <line x1="40" y1="23" x2="40" y2="48"/>
+    <!-- arms spread pulling cables from below -->
+    <line x1="40" y1="32" x2="30" y2="34"/>
+    <line x1="40" y1="32" x2="50" y2="34"/>
+    <!-- legs -->
+    <line x1="40" y1="48" x2="34" y2="66"/>
+    <line x1="40" y1="48" x2="46" y2="66"/>
+  </svg>`,
+
   cruces_polea: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <!-- cable towers -->
     <rect x="4" y="8" width="6" height="56" rx="1"/>
