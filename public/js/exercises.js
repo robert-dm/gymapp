@@ -924,6 +924,19 @@ const EXERCISE_ICONS = {
     <line x1="40" y1="55" x2="46" y2="70"/>
   </svg>`,
 
+  press_tras_nuca_mancuernas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="28" y="52" width="24" height="3" rx="1"/>
+    <circle cx="40" cy="24" r="5"/>
+    <line x1="40" y1="29" x2="40" y2="52"/>
+    <!-- arms behind head with dumbbells -->
+    <line x1="40" y1="30" x2="26" y2="14"/>
+    <line x1="40" y1="30" x2="54" y2="14"/>
+    <rect x="22" y="10" width="8" height="4" rx="1"/>
+    <rect x="50" y="10" width="8" height="4" rx="1"/>
+    <line x1="40" y1="55" x2="34" y2="70"/>
+    <line x1="40" y1="55" x2="46" y2="70"/>
+  </svg>`,
+
   press_arnold: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="28" y="52" width="24" height="3" rx="1"/>
     <circle cx="40" cy="24" r="5"/>
