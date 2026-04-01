@@ -147,5 +147,25 @@ const API = {
     const q = date ? `?date=${date}` : '';
     const res = await fetch(`/api/bodyweight${q}`, { method: 'DELETE', headers: this._headers() });
     return res.json();
+  },
+
+  // Routine
+  async getRoutine() {
+    const res = await fetch('/api/routine', { headers: this._headers() });
+    return res.json();
+  },
+
+  async saveRoutine(days) {
+    const res = await fetch('/api/routine', {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify({ days })
+    });
+    return res.json();
+  },
+
+  async deleteRoutine() {
+    const res = await fetch('/api/routine', { method: 'DELETE', headers: this._headers() });
+    return res.json();
   }
 };

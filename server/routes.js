@@ -7,6 +7,7 @@ const { verifyGoogleToken, generateToken, authMiddleware } = require('./auth');
 const User = require('./models/User');
 const Photo = require('./models/Photo');
 const BodyWeight = require('./models/BodyWeight');
+const Routine = require('./models/Routine');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -240,6 +241,29 @@ router.post('/bodyweight', async (req, res) => {
 router.delete('/bodyweight', async (req, res) => {
   const date = req.query.date || new Date().toLocaleDateString('en-CA');
   await BodyWeight.deleteOne({ user_id: req.userId, date });
+  res.json({ ok: true });
+});
+
+// --- Routine ---
+
+router.get('/routine', async (req, res) => {
+  const routine = await Routine.findOne({ user_id: req.userId }).lean();
+  res.json(routine ? { days: routine.days } : null);
+});
+
+router.put('/routine', async (req, res) => {
+  const { days } = req.body;
+  if (!Array.isArray(days)) return res.status(400).json({ error: 'days array is required' });
+  await Routine.findOneAndUpdate(
+    { user_id: req.userId },
+    { user_id: req.userId, days },
+    { upsert: true, new: true }
+  );
+  res.json({ ok: true });
+});
+
+router.delete('/routine', async (req, res) => {
+  await Routine.deleteOne({ user_id: req.userId });
   res.json({ ok: true });
 });
 
