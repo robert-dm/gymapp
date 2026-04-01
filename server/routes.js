@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('./cloudinary');
 const { Exercise, WorkoutLog, CompletedExercise } = require('./db');
-const { verifyGoogleToken, generateToken, authMiddleware } = require('./auth');
+const { verifyGoogleToken, generateToken, authMiddleware, adminMiddleware } = require('./auth');
 const User = require('./models/User');
 const Photo = require('./models/Photo');
 const BodyWeight = require('./models/BodyWeight');
@@ -30,11 +30,12 @@ router.post('/auth/google', async (req, res) => {
     } else {
       user.name = payload.name;
       user.picture = payload.picture;
+      user.last_login = new Date();
       await user.save();
     }
 
     const token = generateToken(user._id);
-    res.json({ token, user: { name: user.name, email: user.email, picture: user.picture } });
+    res.json({ token, user: { name: user.name, email: user.email, picture: user.picture, is_admin: user.is_admin || false } });
   } catch (err) {
     console.error('Google auth error:', err.message);
     res.status(401).json({ error: 'Authentication failed' });
@@ -45,7 +46,7 @@ router.get('/auth/me', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).lean();
     if (!user) return res.status(401).json({ error: 'User not found' });
-    res.json({ name: user.name, email: user.email, picture: user.picture });
+    res.json({ name: user.name, email: user.email, picture: user.picture, is_admin: user.is_admin || false });
   } catch (err) {
     console.error('Auth me error:', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -60,7 +61,7 @@ router.use(authMiddleware);
 router.get('/exercises', async (req, res) => {
   try {
     const rows = await Exercise.find().sort({ category: 1, name_es: 1 }).lean();
-    res.json(rows.map(r => ({ id: r._id, name_es: r.name_es, name_en: r.name_en, category: r.category, per_side: r.per_side || false })));
+    res.json(rows.map(r => ({ id: r._id, name_es: r.name_es, name_en: r.name_en, category: r.category, per_side: r.per_side || false, icon_svg: r.icon_svg || null })));
   } catch (err) {
     console.error('Get exercises error:', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -537,6 +538,113 @@ router.put('/notes/:exerciseId', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('Save note error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- Admin routes ---
+
+router.get('/admin/users', adminMiddleware, async (req, res) => {
+  try {
+    const users = await User.find({}).sort({ created_at: -1 }).lean();
+    res.json(users.map(u => ({
+      id: u._id,
+      name: u.name,
+      email: u.email,
+      picture: u.picture,
+      created_at: u.created_at,
+      last_login: u.last_login,
+      is_admin: u.is_admin || false,
+    })));
+  } catch (err) {
+    console.error('Admin get users error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/admin/users/:id', adminMiddleware, async (req, res) => {
+  try {
+    const { is_admin } = req.body;
+    await User.updateOne({ _id: req.params.id }, { $set: { is_admin: !!is_admin } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Admin update user error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/admin/users/:id', adminMiddleware, async (req, res) => {
+  try {
+    if (req.params.id === req.userId.toString()) {
+      return res.status(400).json({ error: 'Cannot delete yourself' });
+    }
+    await User.deleteOne({ _id: req.params.id });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Admin delete user error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/admin/exercises', adminMiddleware, async (req, res) => {
+  try {
+    const exercises = await Exercise.find({}).sort({ category: 1, name_es: 1 }).lean();
+    res.json(exercises);
+  } catch (err) {
+    console.error('Admin get exercises error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/admin/exercises', adminMiddleware, async (req, res) => {
+  try {
+    const { _id, name_es, name_en, category, per_side, icon_svg } = req.body;
+    if (!_id || !name_es || !name_en || !category) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const existing = await Exercise.findById(_id);
+    if (existing) return res.status(409).json({ error: 'Exercise ID already exists' });
+    const exercise = await Exercise.create({ _id, name_es, name_en, category, per_side: per_side || false, icon_svg: icon_svg || undefined });
+    res.json(exercise);
+  } catch (err) {
+    console.error('Admin create exercise error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/admin/exercises/:id', adminMiddleware, async (req, res) => {
+  try {
+    const { name_es, name_en, category, per_side } = req.body;
+    const update = {};
+    if (name_es !== undefined) update.name_es = name_es;
+    if (name_en !== undefined) update.name_en = name_en;
+    if (category !== undefined) update.category = category;
+    if (per_side !== undefined) update.per_side = per_side;
+    await Exercise.updateOne({ _id: req.params.id }, { $set: update });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Admin update exercise error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/admin/exercises/:id/icon', adminMiddleware, async (req, res) => {
+  try {
+    const { icon_svg } = req.body;
+    await Exercise.updateOne({ _id: req.params.id }, { $set: { icon_svg: icon_svg || '' } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Admin update icon error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/admin/exercises/:id', adminMiddleware, async (req, res) => {
+  try {
+    await Exercise.deleteOne({ _id: req.params.id });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Admin delete exercise error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

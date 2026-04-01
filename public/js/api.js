@@ -189,5 +189,62 @@ const API = {
     const q = days ? `?days=${days}` : '';
     const res = await fetch(`/api/dashboard${q}`, { headers: this._headers() });
     return res.json();
+  },
+
+  // Admin
+  async getAdminUsers() {
+    const res = await fetch('/api/admin/users', { headers: this._headers() });
+    return res.json();
+  },
+
+  async updateAdminUser(id, data) {
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async deleteAdminUser(id) {
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: this._headers() });
+    return res.json();
+  },
+
+  async getAdminExercises() {
+    const res = await fetch('/api/admin/exercises', { headers: this._headers() });
+    return res.json();
+  },
+
+  async createAdminExercise(data) {
+    const res = await fetch('/api/admin/exercises', {
+      method: 'POST',
+      headers: this._headers(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async updateAdminExercise(id, data) {
+    const res = await fetch(`/api/admin/exercises/${id}`, {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async updateExerciseIcon(id, svg) {
+    const res = await fetch(`/api/admin/exercises/${id}/icon`, {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify({ icon_svg: svg })
+    });
+    return res.json();
+  },
+
+  async deleteAdminExercise(id) {
+    const res = await fetch(`/api/admin/exercises/${id}`, { method: 'DELETE', headers: this._headers() });
+    return res.json();
   }
 };

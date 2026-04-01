@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema({
   name: String,
   picture: String,
   created_at: { type: Date, default: Date.now },
+  last_login: { type: Date },
+  is_admin: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('User', userSchema);

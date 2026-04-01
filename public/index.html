@@ -70,6 +70,7 @@
           <div id="menu-email" class="menu-email"></div>
         </div>
       </div>
+      <button id="btn-admin" class="btn-admin hidden">Admin</button>
       <button id="btn-logout" class="btn-logout">Sign out</button>
     </div>
 
@@ -209,6 +210,79 @@
         <div class="modal-body">
           <div id="dashboard-period" class="dash-period"></div>
           <div id="dashboard-content" class="dash-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button id="admin-back" class="btn-back">&larr;</button>
+          <h2 id="admin-title">Admin</h2>
+        </div>
+        <div class="modal-body">
+          <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="users" id="admin-tab-users">Usuarios</button>
+            <button class="admin-tab" data-tab="exercises" id="admin-tab-exercises">Ejercicios</button>
+          </div>
+          <div id="admin-users" class="admin-panel"></div>
+          <div id="admin-exercises" class="admin-panel hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Exercise Edit Modal -->
+    <div id="admin-exercise-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button id="admin-exercise-back" class="btn-back">&larr;</button>
+          <h2 id="admin-exercise-title">Editar ejercicio</h2>
+        </div>
+        <div class="modal-body">
+          <form id="admin-exercise-form" class="admin-form">
+            <div class="admin-field">
+              <label for="admin-ex-id">ID (slug)</label>
+              <input type="text" id="admin-ex-id" required pattern="[a-z0-9_]+" placeholder="press_banca">
+            </div>
+            <div class="admin-field">
+              <label for="admin-ex-name-es">Nombre (ES)</label>
+              <input type="text" id="admin-ex-name-es" required>
+            </div>
+            <div class="admin-field">
+              <label for="admin-ex-name-en">Name (EN)</label>
+              <input type="text" id="admin-ex-name-en" required>
+            </div>
+            <div class="admin-field">
+              <label for="admin-ex-category">Categoría</label>
+              <select id="admin-ex-category">
+                <option value="chest">Pecho / Chest</option>
+                <option value="back">Espalda / Back</option>
+                <option value="shoulders">Hombros / Shoulders</option>
+                <option value="biceps">Bíceps / Biceps</option>
+                <option value="triceps">Tríceps / Triceps</option>
+                <option value="legs">Piernas / Legs</option>
+                <option value="abs">Abdominales / Abs</option>
+              </select>
+            </div>
+            <div class="admin-field admin-field-inline">
+              <label for="admin-ex-perside">Por lado / Per side</label>
+              <input type="checkbox" id="admin-ex-perside">
+            </div>
+            <div class="admin-field">
+              <label for="admin-ex-svg">SVG Icon</label>
+              <textarea id="admin-ex-svg" rows="6" placeholder="<svg>...</svg>"></textarea>
+            </div>
+            <div class="admin-field">
+              <label>Vista previa</label>
+              <div id="admin-ex-preview" class="admin-icon-preview"></div>
+            </div>
+            <div class="admin-form-actions">
+              <button type="submit" class="admin-btn-save">Guardar</button>
+              <button type="button" id="admin-ex-cancel" class="admin-btn-cancel">Cancelar</button>
+              <button type="button" id="admin-ex-delete" class="admin-btn-delete hidden">Eliminar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
