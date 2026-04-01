@@ -16,7 +16,7 @@ const workoutLogSchema = new mongoose.Schema({
   reps: Number,
   weight: Number,
   per_side: { type: Boolean, default: false },
-  date: { type: String, default: () => new Date().toISOString().slice(0, 10) },
+  date: { type: String, default: () => new Date().toLocaleDateString('en-CA') },
   created_at: { type: Date, default: Date.now },
 });
 workoutLogSchema.index({ user_id: 1, date: 1 });
@@ -24,7 +24,7 @@ workoutLogSchema.index({ user_id: 1, date: 1 });
 const completedExerciseSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
   exercise_id: { type: String, required: true, ref: 'Exercise' },
-  date: { type: String, default: () => new Date().toISOString().slice(0, 10) },
+  date: { type: String, default: () => new Date().toLocaleDateString('en-CA') },
 });
 completedExerciseSchema.index({ user_id: 1, exercise_id: 1, date: 1 }, { unique: true });
 

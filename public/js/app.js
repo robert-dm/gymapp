@@ -1,4 +1,9 @@
 (async function() {
+  function localToday() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   const loginScreen = document.getElementById('login-screen');
   const appContainer = document.getElementById('app-container');
   const googleBtn = document.getElementById('google-signin-btn');
@@ -96,7 +101,7 @@
   let completedIds = new Set();
   let currentExercise = null;
   let activeCategory = 'all';
-  let selectedDate = new Date().toISOString().slice(0, 10);
+  let selectedDate = localToday();
   let appInitialized = false;
 
   async function initApp() {
@@ -154,7 +159,7 @@
     }
 
     async function loadBodyWeight() {
-      const data = await API.getBodyWeight();
+      const data = await API.getBodyWeight(localToday());
       if (data && data.weight) {
         bwInput.value = data.weight;
         bwSave.classList.add('saved');
@@ -167,11 +172,11 @@
     bwSave.addEventListener('click', async () => {
       const val = parseFloat(bwInput.value);
       if (!val) {
-        await API.deleteBodyWeight();
+        await API.deleteBodyWeight(localToday());
         bwSave.classList.remove('saved');
         showBwFeedback(getLang() === 'es' ? 'Eliminado' : 'Deleted');
       } else {
-        await API.saveBodyWeight(val);
+        await API.saveBodyWeight(val, localToday());
         bwSave.classList.add('saved');
         showBwFeedback(getLang() === 'es' ? 'Guardado!' : 'Saved!');
       }
@@ -303,7 +308,7 @@
       const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
       const offset = (firstDay === 0 ? 6 : firstDay - 1);
       const daysInMonth = new Date(calYear, calMonth, 0).getDate();
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = localToday();
 
       let html = '';
       for (let i = 0; i < offset; i++) {
@@ -481,7 +486,7 @@
     // History modal
     btnHistory.addEventListener('click', () => {
       historyModal.classList.remove('hidden');
-      historyDate.value = new Date().toISOString().slice(0, 10);
+      historyDate.value = localToday();
       loadHistoryDate();
     });
 
@@ -527,7 +532,7 @@
     function closeModal() {
       modal.classList.add('hidden');
       currentExercise = null;
-      selectedDate = new Date().toISOString().slice(0, 10);
+      selectedDate = localToday();
       Promise.all([API.getLogs(selectedDate), API.getCompleted(selectedDate)]).then(([logs, completed]) => {
         todayLogs = logs;
         completedIds = new Set(completed);
@@ -709,7 +714,7 @@
         return;
       }
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = localToday();
       const grouped = {};
       history.forEach(h => {
         if (h.date === today) return;
