@@ -125,7 +125,7 @@ router.get('/logs/history/:exerciseId', async (req, res) => {
   try {
     const rows = await WorkoutLog.find({ user_id: req.userId, exercise_id: req.params.exerciseId })
       .sort({ date: -1, set_number: 1 })
-      .limit(50)
+      .limit(200)
       .lean();
     res.json(rows.map(r => ({ date: r.date, set_number: r.set_number, reps: r.reps, weight: r.weight, per_side: r.per_side || false })));
   } catch (err) {
@@ -294,7 +294,7 @@ router.get('/dashboard', async (req, res) => {
       .map(cat => ({ category: cat, sets: catMap[cat], prevSets: prevCatMap[cat] || 0 }))
       .sort((a, b) => b.sets - a.sets);
 
-    // Exercise progress
+    // Exercise progress with per-session weight trend
     const exGroup = (logs) => {
       const map = {};
       logs.forEach(l => {
@@ -303,20 +303,44 @@ router.get('/dashboard', async (req, res) => {
       });
       return map;
     };
+    const allByEx = exGroup(allLogs);
     const currentByEx = exGroup(currentLogs);
     const prevByEx = exGroup(prevLogs);
 
+    // Also get all-time max for PR detection
+    const allTimeMaxes = {};
+    const allTimeLogs = await WorkoutLog.find({ user_id: req.userId }).lean();
+    allTimeLogs.forEach(l => {
+      const w = l.weight || 0;
+      if (!allTimeMaxes[l.exercise_id] || w > allTimeMaxes[l.exercise_id]) {
+        allTimeMaxes[l.exercise_id] = w;
+      }
+    });
+
     const exerciseProgress = [];
     for (const [exId, logs] of Object.entries(currentByEx)) {
-      if (!prevByEx[exId]) continue;
-      const prev = prevByEx[exId];
       const ex = exMap[exId];
       if (!ex) continue;
+      const prev = prevByEx[exId] || [];
 
       const curVol = calcVolume(logs);
       const prvVol = calcVolume(prev);
       const curMax = Math.max(...logs.map(l => l.weight || 0));
-      const prvMax = Math.max(...prev.map(l => l.weight || 0));
+      const prvMax = prev.length > 0 ? Math.max(...prev.map(l => l.weight || 0)) : 0;
+
+      // Per-session weight trend (max weight per date, across full range)
+      const allExLogs = allByEx[exId] || logs;
+      const sessionMap = {};
+      allExLogs.forEach(l => {
+        const w = l.weight || 0;
+        if (!sessionMap[l.date] || w > sessionMap[l.date]) sessionMap[l.date] = w;
+      });
+      const trend = Object.entries(sessionMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, weight]) => ({ date, weight }));
+
+      // PR detection: current max equals all-time max
+      const isPR = curMax > 0 && curMax >= (allTimeMaxes[exId] || 0);
 
       exerciseProgress.push({
         exercise_id: exId,
@@ -326,10 +350,22 @@ router.get('/dashboard', async (req, res) => {
         current: { maxWeight: curMax, totalVolume: curVol, sets: logs.length },
         previous: { maxWeight: prvMax, totalVolume: prvVol, sets: prev.length },
         volumeChange: prvVol > 0 ? Math.round(((curVol - prvVol) / prvVol) * 100) : 0,
+        trend,
+        isPR,
       });
     }
     exerciseProgress.sort((a, b) => b.current.totalVolume - a.current.totalVolume);
-    const exercises = exerciseProgress.slice(0, 10);
+    const exercises = exerciseProgress.slice(0, 15);
+
+    // Volume per day trend (for chart)
+    const volByDate = {};
+    allLogs.forEach(l => {
+      const v = (l.reps || 0) * (l.weight || 0) * (l.per_side ? 2 : 1);
+      volByDate[l.date] = (volByDate[l.date] || 0) + v;
+    });
+    const volumeTrend = Object.entries(volByDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, volume]) => ({ date, volume }));
 
     const bodyweight = bodyweightEntries.map(e => ({ date: e.date, weight: e.weight }));
 
@@ -338,6 +374,7 @@ router.get('/dashboard', async (req, res) => {
       summary,
       categories,
       exercises,
+      volumeTrend,
       bodyweight,
     });
   } catch (err) {
