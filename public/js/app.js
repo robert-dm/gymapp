@@ -127,6 +127,10 @@
     const btnPerSide = document.getElementById('btn-per-side');
     const perSideTotal = document.getElementById('per-side-total');
     let perSideActive = false;
+    const btnInstructions = document.getElementById('btn-instructions');
+    const instructionsPanel = document.getElementById('instructions-panel');
+    const instructionsSteps = document.getElementById('instructions-steps');
+    const instructionsLabel = document.getElementById('instructions-label');
     const btnBack = document.getElementById('modal-back');
     const historySection = document.getElementById('history-section');
     const btnComplete = document.getElementById('btn-complete');
@@ -234,6 +238,25 @@
     });
 
     inputWeight.addEventListener('input', updatePerSideTotal);
+
+    // Instructions toggle
+    btnInstructions.addEventListener('click', () => {
+      const isOpen = !instructionsPanel.classList.contains('hidden');
+      instructionsPanel.classList.toggle('hidden');
+      btnInstructions.classList.toggle('active', !isOpen);
+    });
+
+    function renderInstructions(steps) {
+      const lang = getLang();
+      instructionsSteps.innerHTML = steps.map((step, i) => `
+        <div class="instruction-step">
+          <div class="instruction-step-number">${i + 1}</div>
+          <div class="instruction-step-icon">${step.icon}</div>
+          <div class="instruction-step-text">${step[lang]}</div>
+        </div>
+      `).join('');
+    }
+
 
     // --- Calendar ---
     const calendarModal = document.getElementById('calendar-modal');
@@ -649,6 +672,18 @@
       modalIcon.innerHTML = EXERCISE_ICONS[ex.id] || '';
       modalDate.value = selectedDate;
       modal.classList.remove('hidden');
+
+      // Instructions
+      instructionsPanel.classList.add('hidden');
+      btnInstructions.classList.remove('active');
+      const steps = EXERCISE_INSTRUCTIONS[ex.id];
+      if (steps) {
+        btnInstructions.classList.remove('hidden');
+        instructionsLabel.textContent = t('instructions');
+        renderInstructions(steps);
+      } else {
+        btnInstructions.classList.add('hidden');
+      }
 
       // Per-side default from exercise
       perSideActive = ex.per_side || false;

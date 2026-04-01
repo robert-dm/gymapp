@@ -30,6 +30,7 @@ const TRANSLATIONS = {
     deletePhoto: 'Eliminar',
     confirmDeletePhoto: '¿Eliminar esta foto?',
     noPhotos: 'Sin fotos para este día',
+    instructions: 'Instrucciones',
     mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue', fri: 'Vie', sat: 'Sáb', sun: 'Dom',
     months: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
   },
@@ -64,6 +65,7 @@ const TRANSLATIONS = {
     deletePhoto: 'Delete',
     confirmDeletePhoto: 'Delete this photo?',
     noPhotos: 'No photos for this day',
+    instructions: 'Instructions',
     mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun',
     months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
   }
