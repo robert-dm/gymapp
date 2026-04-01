@@ -108,9 +108,9 @@
 
   async function initApp() {
     if (appInitialized) {
-      // Just refresh data on re-login
-      todayLogs = await API.getLogs();
-      completedIds = new Set(await API.getCompleted());
+      const [logs, completed] = await Promise.all([API.getLogs(), API.getCompleted()]);
+      todayLogs = logs;
+      completedIds = new Set(completed);
       renderGrid();
       return;
     }
@@ -157,11 +157,17 @@
     const btnSaveRoutine = document.getElementById('btn-save-routine');
     const btnDeleteRoutine = document.getElementById('btn-delete-routine');
 
-    // Init
-    exercises = await API.getExercises();
-    todayLogs = await API.getLogs(selectedDate);
-    completedIds = new Set(await API.getCompleted(selectedDate));
-    userRoutine = await API.getRoutine();
+    // Init — parallel fetch
+    const [ex, logs, completed, routine] = await Promise.all([
+      API.getExercises(),
+      API.getLogs(selectedDate),
+      API.getCompleted(selectedDate),
+      API.getRoutine(),
+    ]);
+    exercises = ex;
+    todayLogs = logs;
+    completedIds = new Set(completed);
+    userRoutine = routine;
     renderAll();
 
     // --- Body Weight ---
@@ -748,9 +754,18 @@
         const exerciseLogs = todayLogs.filter(l => l.exercise_id === currentExercise.id);
         const nextSet = exerciseLogs.length + 1;
 
-        await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
+        const result = await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
 
-        todayLogs = await API.getLogs(selectedDate);
+        // Append locally instead of refetching all logs
+        todayLogs.push({
+          id: result.id,
+          exercise_id: currentExercise.id,
+          set_number: nextSet,
+          reps,
+          weight,
+          per_side: perSideActive,
+          date: selectedDate,
+        });
         renderSets();
         inputReps.focus();
       } catch (err) {
@@ -863,12 +878,15 @@
       perSideActive = ex.per_side || false;
       updatePerSideUI();
 
-      todayLogs = await API.getLogs(selectedDate);
-      completedIds = new Set(await API.getCompleted(selectedDate));
+      const [logs, completed, history] = await Promise.all([
+        API.getLogs(selectedDate),
+        API.getCompleted(selectedDate),
+        API.getHistory(ex.id),
+      ]);
+      todayLogs = logs;
+      completedIds = new Set(completed);
       renderSets();
       updateCompleteButton();
-
-      const history = await API.getHistory(ex.id);
       renderExerciseHistory(history);
 
       inputReps.focus();
@@ -911,7 +929,7 @@
         btn.addEventListener('click', async () => {
           if (!confirm(t('confirmDelete'))) return;
           await API.deleteLog(btn.dataset.id);
-          todayLogs = await API.getLogs(selectedDate);
+          todayLogs = todayLogs.filter(l => l.id !== btn.dataset.id);
           renderSets();
         });
       });

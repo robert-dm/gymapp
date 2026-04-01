@@ -20,6 +20,7 @@ const workoutLogSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 workoutLogSchema.index({ user_id: 1, date: 1 });
+workoutLogSchema.index({ user_id: 1, exercise_id: 1, date: -1 });
 
 const completedExerciseSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
@@ -109,9 +110,14 @@ const exercises = [
 ];
 
 async function seedExercises() {
-  for (const ex of exercises) {
-    await Exercise.updateOne({ _id: ex._id }, ex, { upsert: true });
-  }
+  const ops = exercises.map(ex => ({
+    updateOne: {
+      filter: { _id: ex._id },
+      update: { $set: ex },
+      upsert: true,
+    }
+  }));
+  await Exercise.bulkWrite(ops);
 }
 
 async function connect() {
