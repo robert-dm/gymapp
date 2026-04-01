@@ -8,6 +8,7 @@ const User = require('./models/User');
 const Photo = require('./models/Photo');
 const BodyWeight = require('./models/BodyWeight');
 const Routine = require('./models/Routine');
+const ExerciseNote = require('./models/ExerciseNote');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -344,6 +345,33 @@ router.delete('/routine', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('Delete routine error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- Exercise Notes ---
+
+router.get('/notes/:exerciseId', async (req, res) => {
+  try {
+    const doc = await ExerciseNote.findOne({ user_id: req.userId, exercise_id: req.params.exerciseId }).lean();
+    res.json({ note: doc ? doc.note : '' });
+  } catch (err) {
+    console.error('Get note error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/notes/:exerciseId', async (req, res) => {
+  try {
+    const { note } = req.body;
+    await ExerciseNote.updateOne(
+      { user_id: req.userId, exercise_id: req.params.exerciseId },
+      { $set: { user_id: req.userId, exercise_id: req.params.exerciseId, note: note || '' } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Save note error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
