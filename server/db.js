@@ -16,7 +16,7 @@ const workoutLogSchema = new mongoose.Schema({
   reps: Number,
   weight: Number,
   per_side: { type: Boolean, default: false },
-  date: { type: String, default: () => new Date().toISOString().slice(0, 10) },
+  date: { type: String, default: () => new Date().toLocaleDateString('en-CA') },
   created_at: { type: Date, default: Date.now },
 });
 workoutLogSchema.index({ user_id: 1, date: 1 });
@@ -24,7 +24,7 @@ workoutLogSchema.index({ user_id: 1, date: 1 });
 const completedExerciseSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
   exercise_id: { type: String, required: true, ref: 'Exercise' },
-  date: { type: String, default: () => new Date().toISOString().slice(0, 10) },
+  date: { type: String, default: () => new Date().toLocaleDateString('en-CA') },
 });
 completedExerciseSchema.index({ user_id: 1, exercise_id: 1, date: 1 }, { unique: true });
 
@@ -87,7 +87,7 @@ const exercises = [
   { _id: 'extension_triceps', name_es: 'Extensión tríceps sobre cabeza', name_en: 'Overhead Triceps Extension', category: 'triceps' },
   { _id: 'copa_mancuerna', name_es: 'Copa con mancuerna', name_en: 'Dumbbell Overhead Extension', category: 'triceps' },
   { _id: 'press_cerrado', name_es: 'Press banca agarre cerrado', name_en: 'Close Grip Bench Press', category: 'triceps' },
-  // Legs (12)
+  // Legs (13)
   { _id: 'sentadillas', name_es: 'Sentadillas', name_en: 'Squats', category: 'legs' },
   { _id: 'sentadilla_hack', name_es: 'Sentadilla hack', name_en: 'Hack Squat', category: 'legs' },
   { _id: 'sentadilla_bulgara', name_es: 'Sentadilla búlgara', name_en: 'Bulgarian Split Squat', category: 'legs' },
@@ -98,6 +98,7 @@ const exercises = [
   { _id: 'zancadas', name_es: 'Zancadas', name_en: 'Lunges', category: 'legs' },
   { _id: 'elevacion_talones', name_es: 'Elevación de talones', name_en: 'Calf Raises', category: 'legs' },
   { _id: 'prensa_gemelos', name_es: 'Prensa de gemelos', name_en: 'Calf Press', category: 'legs' },
+  { _id: 'hip_thrust', name_es: 'Hip Thrust', name_en: 'Hip Thrust', category: 'legs' },
   { _id: 'aductores', name_es: 'Aductores', name_en: 'Adductors', category: 'legs' },
   { _id: 'abductores', name_es: 'Abductores', name_en: 'Abductors', category: 'legs' },
   // Abs (4)

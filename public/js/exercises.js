@@ -1068,6 +1068,21 @@ const EXERCISE_ICONS = {
     <line x1="44" y1="50" x2="52" y2="42"/>
   </svg>`,
 
+  hip_thrust: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="38" width="20" height="10" rx="2"/>
+    <circle cx="40" cy="28" r="5"/>
+    <line x1="38" y1="33" x2="28" y2="42"/>
+    <line x1="28" y1="42" x2="38" y2="24"/>
+    <line x1="28" y1="42" x2="38" y2="52"/>
+    <line x1="38" y1="52" x2="48" y2="62"/>
+    <line x1="48" y1="62" x2="48" y2="68"/>
+    <line x1="28" y1="42" x2="22" y2="52"/>
+    <line x1="22" y1="52" x2="22" y2="68"/>
+    <line x1="32" y1="28" x2="56" y2="28"/>
+    <circle cx="54" cy="28" r="3"/>
+    <circle cx="58" cy="28" r="3"/>
+  </svg>`,
+
   // ===== NEW ABS =====
   plancha: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="18" cy="38" r="5"/>

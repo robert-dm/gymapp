@@ -68,14 +68,14 @@ router.post('/logs', async (req, res) => {
     reps: reps || null,
     weight: weight || null,
     per_side: per_side || false,
-    date: date || new Date().toISOString().slice(0, 10),
+    date: date || new Date().toLocaleDateString('en-CA'),
   });
   res.json({ id: log._id });
 });
 
 // Get logs for a date (defaults to today)
 router.get('/logs', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   const logs = await WorkoutLog.find({ user_id: req.userId, date }).sort({ created_at: 1 }).lean();
 
   const exerciseIds = [...new Set(logs.map(l => l.exercise_id))];
@@ -115,7 +115,7 @@ router.delete('/logs/:id', async (req, res) => {
 
 // Get completed exercises for a date
 router.get('/completed', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   const rows = await CompletedExercise.find({ user_id: req.userId, date }).lean();
   res.json(rows.map(r => r.exercise_id));
 });
@@ -124,7 +124,7 @@ router.get('/completed', async (req, res) => {
 router.post('/completed', async (req, res) => {
   const { exercise_id, date } = req.body;
   if (!exercise_id) return res.status(400).json({ error: 'exercise_id is required' });
-  const d = date || new Date().toISOString().slice(0, 10);
+  const d = date || new Date().toLocaleDateString('en-CA');
   await CompletedExercise.updateOne(
     { user_id: req.userId, exercise_id, date: d },
     { user_id: req.userId, exercise_id, date: d },
@@ -135,7 +135,7 @@ router.post('/completed', async (req, res) => {
 
 // Unmark exercise as completed
 router.delete('/completed/:exerciseId', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   await CompletedExercise.deleteOne({ user_id: req.userId, exercise_id: req.params.exerciseId, date });
   res.json({ ok: true });
 });
@@ -173,7 +173,7 @@ router.get('/calendar/:year/:month', async (req, res) => {
 
 // Get photos for a date
 router.get('/photos', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   const photos = await Photo.find({ user_id: req.userId, date }).sort({ created_at: 1 }).lean();
   res.json(photos.map(p => ({ id: p._id, url: p.url, public_id: p.public_id, date: p.date })));
 });
@@ -181,7 +181,7 @@ router.get('/photos', async (req, res) => {
 // Upload photo to Cloudinary and save reference
 router.post('/photos', upload.single('photo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'photo file is required' });
-  const date = req.body.date || new Date().toISOString().slice(0, 10);
+  const date = req.body.date || new Date().toLocaleDateString('en-CA');
 
   try {
     const result = await new Promise((resolve, reject) => {
@@ -218,7 +218,7 @@ router.delete('/photos/:id', async (req, res) => {
 
 // Get body weight for a date
 router.get('/bodyweight', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   const entry = await BodyWeight.findOne({ user_id: req.userId, date }).lean();
   res.json(entry ? { weight: entry.weight, date: entry.date } : null);
 });
@@ -227,7 +227,7 @@ router.get('/bodyweight', async (req, res) => {
 router.post('/bodyweight', async (req, res) => {
   const { weight, date } = req.body;
   if (!weight) return res.status(400).json({ error: 'weight is required' });
-  const d = date || new Date().toISOString().slice(0, 10);
+  const d = date || new Date().toLocaleDateString('en-CA');
   await BodyWeight.updateOne(
     { user_id: req.userId, date: d },
     { user_id: req.userId, date: d, weight },
@@ -238,7 +238,7 @@ router.post('/bodyweight', async (req, res) => {
 
 // Delete body weight for a date
 router.delete('/bodyweight', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().slice(0, 10);
+  const date = req.query.date || new Date().toLocaleDateString('en-CA');
   await BodyWeight.deleteOne({ user_id: req.userId, date });
   res.json({ ok: true });
 });

@@ -901,7 +901,7 @@ header h1 {
   opacity: 0.9;
 }
 
-/* Responsive */
+/* Responsive — Desktop (768px+) */
 @media (min-width: 768px) {
   .exercise-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -917,14 +917,379 @@ header h1 {
   }
 }
 
+/* ===== Mobile Optimizations (< 768px) ===== */
+@media (max-width: 767px) {
+  /* Safe area for notched phones */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Prevent zoom on input focus — keep font at 16px minimum */
+  input[type="number"],
+  input[type="date"],
+  input[type="text"],
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Sticky header — slightly more compact */
+  header {
+    padding: 12px 16px;
+  }
+
+  header h1 {
+    font-size: 1.15rem;
+  }
+
+  .header-controls {
+    gap: 6px;
+  }
+
+  .btn-icon {
+    padding: 8px;
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .btn-lang {
+    padding: 6px 10px;
+    min-height: 36px;
+  }
+
+  .btn-user {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Body weight bar */
+  .bodyweight-bar {
+    padding: 10px 16px;
+  }
+
+  .bw-input {
+    width: 90px;
+    padding: 8px 10px;
+  }
+
+  .bw-save {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 1.2rem;
+  }
+
+  /* Category filter — better horizontal scroll */
+  .category-filter {
+    padding: 10px 16px;
+    gap: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .category-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-filter button {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    min-height: 36px;
+  }
+
+  /* Exercise grid — 3 columns on most phones */
+  .exercise-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 10px 16px 100px;
+  }
+
+  .exercise-card {
+    padding: 10px 4px 8px;
+    border-radius: 10px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .exercise-card:hover {
+    transform: none;
+    box-shadow: var(--shadow);
+  }
+
+  .exercise-card:active {
+    transform: scale(0.95);
+    background: #f1f5f9;
+  }
+
+  .exercise-card svg {
+    width: 52px;
+    height: 52px;
+  }
+
+  .exercise-card .name {
+    font-size: 0.68rem;
+  }
+
+  /* Modal — full screen, smoother */
+  .modal-header {
+    padding: 14px 16px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+  }
+
+  .modal-header h2 {
+    font-size: 1rem;
+  }
+
+  .btn-back {
+    font-size: 1.3rem;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  /* Sets table — more touch-friendly */
+  .sets-table th {
+    padding: 8px;
+    font-size: 0.75rem;
+  }
+
+  .sets-table td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+
+  .sets-table .set-num {
+    width: 40px;
+  }
+
+  .btn-delete {
+    font-size: 1.2rem;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Add set row — wrap for narrow screens */
+  .add-set-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .add-set-row input {
+    flex: 1 1 calc(50% - 30px);
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .btn-per-side {
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 0.78rem;
+    min-width: 54px;
+  }
+
+  .btn-primary {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .btn-complete {
+    padding: 16px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Per-side total */
+  .per-side-total {
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+    margin-top: -2px;
+  }
+
+  /* History section in modal */
+  .history-day {
+    padding: 10px 12px;
+  }
+
+  .history-day .date {
+    font-size: 0.82rem;
+  }
+
+  .history-day .sets {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Date picker full width */
+  .date-picker {
+    padding: 12px;
+  }
+
+  /* History modal */
+  .history-log-entry {
+    padding: 12px;
+  }
+
+  .history-log-entry .exercise-name {
+    font-size: 0.9rem;
+  }
+
+  .history-log-entry .exercise-sets {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  /* Calendar — already capped at 320px, ensure good tap targets */
+  .cal-day {
+    font-size: 0.8rem;
+    border-radius: 6px;
+    min-height: 36px;
+  }
+
+  .cal-day .photo-dot {
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .btn-cal-nav {
+    padding: 8px 14px;
+    min-height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Day detail */
+  .cal-day-detail {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .cal-summary-exercise {
+    padding: 10px;
+  }
+
+  .cal-summary-exercise .exercise-name {
+    font-size: 0.82rem;
+  }
+
+  .cal-summary-exercise .exercise-sets {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .cal-day-photos {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .btn-upload-photo {
+    padding: 14px;
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+
+  /* Lightbox */
+  .lightbox-close {
+    top: calc(12px + env(safe-area-inset-top));
+    right: 16px;
+    font-size: 2.2rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .photo-lightbox img {
+    max-width: 95%;
+    max-height: 70vh;
+  }
+
+  .lightbox-delete {
+    margin-top: 20px;
+    padding: 12px 28px;
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+
+  /* User menu — position better on mobile */
+  .user-menu {
+    top: 52px;
+    right: 8px;
+    left: 8px;
+    min-width: unset;
+    max-width: 320px;
+    margin-left: auto;
+  }
+
+  .btn-logout {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    min-height: 48px;
+  }
+
+  /* Login screen */
+  .login-card {
+    padding: 40px 28px;
+    border-radius: 16px;
+    width: 92%;
+  }
+
+  .login-card h1 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Extra small phones (< 380px) */
 @media (max-width: 380px) {
   .exercise-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding: 8px 12px 80px;
+    gap: 6px;
+    padding: 8px 10px 100px;
   }
+
+  .exercise-card {
+    padding: 8px 2px 6px;
+  }
+
   .exercise-card svg {
-    width: 50px;
-    height: 50px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .exercise-card .name {
+    font-size: 0.62rem;
+  }
+
+  .add-set-row input {
+    padding: 10px 8px;
+  }
+
+  .category-filter {
+    padding: 8px 10px;
+  }
+
+  .category-filter button {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+  }
+
+  .modal-body {
+    padding: 12px;
   }
 }
