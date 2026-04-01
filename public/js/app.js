@@ -721,14 +721,20 @@
     // Complete/uncomplete toggle
     btnComplete.addEventListener('click', async () => {
       if (!currentExercise) return;
-      if (completedIds.has(currentExercise.id)) {
-        await API.unmarkCompleted(currentExercise.id, selectedDate);
-        completedIds.delete(currentExercise.id);
-      } else {
-        await API.markCompleted(currentExercise.id, selectedDate);
-        completedIds.add(currentExercise.id);
+      try {
+        if (completedIds.has(currentExercise.id)) {
+          await API.unmarkCompleted(currentExercise.id, selectedDate);
+          completedIds.delete(currentExercise.id);
+        } else {
+          await API.markCompleted(currentExercise.id, selectedDate);
+          completedIds.add(currentExercise.id);
+        }
+        updateCompleteButton();
+      } catch (err) {
+        console.error('Complete toggle failed:', err);
+        const msg = getLang() === 'es' ? 'Error al guardar. Intentá de nuevo.' : 'Failed to save. Please try again.';
+        alert(msg);
       }
-      updateCompleteButton();
     });
 
     // Add set
@@ -738,14 +744,20 @@
       const weight = parseFloat(inputWeight.value) || null;
       if (!reps && !weight) return;
 
-      const exerciseLogs = todayLogs.filter(l => l.exercise_id === currentExercise.id);
-      const nextSet = exerciseLogs.length + 1;
+      try {
+        const exerciseLogs = todayLogs.filter(l => l.exercise_id === currentExercise.id);
+        const nextSet = exerciseLogs.length + 1;
 
-      await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
+        await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
 
-      todayLogs = await API.getLogs(selectedDate);
-      renderSets();
-      inputReps.focus();
+        todayLogs = await API.getLogs(selectedDate);
+        renderSets();
+        inputReps.focus();
+      } catch (err) {
+        console.error('Add set failed:', err);
+        const msg = getLang() === 'es' ? 'Error al guardar serie. Intentá de nuevo.' : 'Failed to save set. Please try again.';
+        alert(msg);
+      }
     });
 
     [inputReps, inputWeight].forEach(input => {

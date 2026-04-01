@@ -25,6 +25,12 @@ app.use('/api', async (req, res, next) => {
   next();
 }, routes);
 
+// Global error handler — prevents server crash on unhandled route errors
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(500).json({ error: 'Server error' });
+});
+
 // Only listen when not running in serverless (Vercel)
 if (!process.env.VERCEL) {
   connect().then(() => {
