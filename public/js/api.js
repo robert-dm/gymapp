@@ -167,5 +167,20 @@ const API = {
   async deleteRoutine() {
     const res = await fetch('/api/routine', { method: 'DELETE', headers: this._headers() });
     return res.json();
+  },
+
+  // Exercise notes
+  async getNote(exerciseId) {
+    const res = await fetch(`/api/notes/${exerciseId}`, { headers: this._headers() });
+    return res.json();
+  },
+
+  async saveNote(exerciseId, note) {
+    const res = await fetch(`/api/notes/${exerciseId}`, {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify({ note })
+    });
+    return res.json();
   }
 };

@@ -144,6 +144,7 @@
     const historyDate = document.getElementById('history-date');
     const historyLog = document.getElementById('history-log');
     const modalDate = document.getElementById('modal-date');
+    const exerciseNoteInput = document.getElementById('exercise-note');
 
     // Routine DOM refs
     const routineBar = document.getElementById('routine-bar');
@@ -224,6 +225,15 @@
       completedIds = new Set(await API.getCompleted(selectedDate));
       renderSets();
       updateCompleteButton();
+    });
+
+    // Auto-save exercise note on blur
+    let noteSaveTimer = null;
+    exerciseNoteInput.addEventListener('blur', () => {
+      if (!currentExercise) return;
+      const exId = currentExercise.id;
+      clearTimeout(noteSaveTimer);
+      API.saveNote(exId, exerciseNoteInput.value);
     });
 
     // Per-side toggle
@@ -874,18 +884,24 @@
         btnInstructions.classList.add('hidden');
       }
 
+      // Note
+      exerciseNoteInput.value = '';
+      exerciseNoteInput.placeholder = t('notePlaceholder');
+
       // Per-side default from exercise
       perSideActive = ex.per_side || false;
       updatePerSideUI();
 
-      const [logs, completed, history] = await Promise.all([
+      const [logs, completed, history, noteData] = await Promise.all([
         API.getLogs(selectedDate),
         API.getCompleted(selectedDate),
         API.getHistory(ex.id),
+        API.getNote(ex.id),
       ]);
       if (!currentExercise) return;
       todayLogs = logs;
       completedIds = new Set(completed);
+      exerciseNoteInput.value = noteData.note || '';
       renderSets();
       updateCompleteButton();
       renderExerciseHistory(history);
