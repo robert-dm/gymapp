@@ -87,7 +87,7 @@ const exercises = [
   { _id: 'extension_triceps', name_es: 'Extensión tríceps sobre cabeza', name_en: 'Overhead Triceps Extension', category: 'triceps' },
   { _id: 'copa_mancuerna', name_es: 'Copa con mancuerna', name_en: 'Dumbbell Overhead Extension', category: 'triceps' },
   { _id: 'press_cerrado', name_es: 'Press banca agarre cerrado', name_en: 'Close Grip Bench Press', category: 'triceps' },
-  // Legs (12)
+  // Legs (13)
   { _id: 'sentadillas', name_es: 'Sentadillas', name_en: 'Squats', category: 'legs' },
   { _id: 'sentadilla_hack', name_es: 'Sentadilla hack', name_en: 'Hack Squat', category: 'legs' },
   { _id: 'sentadilla_bulgara', name_es: 'Sentadilla búlgara', name_en: 'Bulgarian Split Squat', category: 'legs' },
@@ -98,6 +98,7 @@ const exercises = [
   { _id: 'zancadas', name_es: 'Zancadas', name_en: 'Lunges', category: 'legs' },
   { _id: 'elevacion_talones', name_es: 'Elevación de talones', name_en: 'Calf Raises', category: 'legs' },
   { _id: 'prensa_gemelos', name_es: 'Prensa de gemelos', name_en: 'Calf Press', category: 'legs' },
+  { _id: 'hip_thrust', name_es: 'Hip Thrust', name_en: 'Hip Thrust', category: 'legs' },
   { _id: 'aductores', name_es: 'Aductores', name_en: 'Adductors', category: 'legs' },
   { _id: 'abductores', name_es: 'Abductores', name_en: 'Abductors', category: 'legs' },
   // Abs (4)
