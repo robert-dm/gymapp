@@ -7,6 +7,7 @@ const exerciseSchema = new mongoose.Schema({
   name_en: { type: String, required: true },
   category: { type: String, required: true },
   per_side: { type: Boolean, default: false },
+  icon_svg: { type: String },
 }, { _id: false });
 
 const workoutLogSchema = new mongoose.Schema({

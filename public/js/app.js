@@ -87,6 +87,17 @@
     document.addEventListener('click', () => userMenu.classList.add('hidden'));
     userMenu.addEventListener('click', (e) => e.stopPropagation());
 
+    // Admin button
+    const btnAdmin = document.getElementById('btn-admin');
+    if (currentUser.is_admin) {
+      btnAdmin.classList.remove('hidden');
+      btnAdmin.textContent = t('admin');
+      btnAdmin.addEventListener('click', () => {
+        userMenu.classList.add('hidden');
+        openAdminModal();
+      });
+    }
+
     btnLogout.addEventListener('click', () => {
       API.logout();
       currentUser = null;
@@ -1036,7 +1047,7 @@
         const isCompleted = completedIds.has(ex.id);
         const hasLogs = todayExerciseIds.has(ex.id);
         const statusClass = isCompleted ? 'completed' : hasLogs ? 'has-logs' : '';
-        const icon = EXERCISE_ICONS[ex.id] || '';
+        const icon = ex.icon_svg || EXERCISE_ICONS[ex.id] || '';
         return `
           <div class="exercise-card ${statusClass}" data-id="${ex.id}">
             ${icon}
@@ -1059,7 +1070,7 @@
       const name = lang === 'es' ? ex.name_es : ex.name_en;
 
       modalTitle.textContent = name;
-      modalIcon.innerHTML = EXERCISE_ICONS[ex.id] || '';
+      modalIcon.innerHTML = ex.icon_svg || EXERCISE_ICONS[ex.id] || '';
       modalDate.value = selectedDate;
       modal.classList.remove('hidden');
 
@@ -1263,6 +1274,218 @@
         </div>
       `).join('');
     }
+  }
+
+  // --- Admin Panel ---
+  let adminExercises = [];
+  let editingExerciseId = null;
+
+  function openAdminModal() {
+    const modal = document.getElementById('admin-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('admin-title').textContent = t('admin');
+    document.getElementById('admin-tab-users').textContent = t('adminUsers');
+    document.getElementById('admin-tab-exercises').textContent = t('adminExercises');
+    switchAdminTab('users');
+  }
+
+  document.getElementById('admin-back').addEventListener('click', () => {
+    document.getElementById('admin-modal').classList.add('hidden');
+  });
+
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchAdminTab(tab.dataset.tab));
+  });
+
+  function switchAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.getElementById('admin-users').classList.toggle('hidden', tab !== 'users');
+    document.getElementById('admin-exercises').classList.toggle('hidden', tab !== 'exercises');
+    if (tab === 'users') loadAdminUsers();
+    else loadAdminExercises();
+  }
+
+  async function loadAdminUsers() {
+    const container = document.getElementById('admin-users');
+    container.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      const users = await API.getAdminUsers();
+      if (!users.length) {
+        container.innerHTML = `<div class="empty-state">${t('adminNoUsers')}</div>`;
+        return;
+      }
+      const lang = getLang();
+      container.innerHTML = users.map(u => {
+        const created = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+        const lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString() : '-';
+        return `
+          <div class="admin-user-card" data-id="${u.id}">
+            <img class="admin-user-avatar" src="${u.picture || ''}" alt="" onerror="this.style.display='none'">
+            <div class="admin-user-info">
+              <div class="admin-user-name">${u.name || '-'}</div>
+              <div class="admin-user-email">${u.email}</div>
+              <div class="admin-user-meta">${t('adminCreatedAt')}: ${created} · ${t('adminLastLogin')}: ${lastLogin}</div>
+            </div>
+            <div class="admin-user-actions">
+              <button class="admin-toggle-admin ${u.is_admin ? 'is-admin' : ''}" data-id="${u.id}" data-admin="${u.is_admin}">${t('adminIsAdmin')}</button>
+              <button class="admin-btn-del-user" data-id="${u.id}">${t('adminDeleteUser')}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.admin-toggle-admin').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const newVal = btn.dataset.admin !== 'true';
+          await API.updateAdminUser(id, { is_admin: newVal });
+          showAdminToast(t('adminSaved'));
+          loadAdminUsers();
+        });
+      });
+
+      container.querySelectorAll('.admin-btn-del-user').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm(t('adminConfirmDeleteUser'))) return;
+          await API.deleteAdminUser(btn.dataset.id);
+          loadAdminUsers();
+        });
+      });
+    } catch (err) {
+      console.error('Admin users error:', err);
+      container.innerHTML = '<div class="empty-state">Error loading users</div>';
+    }
+  }
+
+  async function loadAdminExercises() {
+    const container = document.getElementById('admin-exercises');
+    container.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      adminExercises = await API.getAdminExercises();
+      const lang = getLang();
+      const header = `<div class="admin-exercises-header">
+        <span style="color:#94a3b8;font-size:0.85rem">${adminExercises.length} ${t('adminExercises').toLowerCase()}</span>
+        <button class="admin-btn-add" id="admin-add-ex">${t('adminAddExercise')}</button>
+      </div>`;
+
+      const cards = adminExercises.map(ex => {
+        const name = lang === 'es' ? ex.name_es : ex.name_en;
+        const iconHtml = ex.icon_svg || (typeof EXERCISE_ICONS !== 'undefined' && EXERCISE_ICONS[ex._id]) || '';
+        return `
+          <div class="admin-ex-card" data-id="${ex._id}">
+            <div class="admin-ex-icon">${iconHtml}</div>
+            <div class="admin-ex-info">
+              <div class="admin-ex-name">${name}</div>
+              <div class="admin-ex-detail">${ex._id}${ex.per_side ? ' · per side' : ''}</div>
+            </div>
+            <span class="admin-ex-category">${ex.category}</span>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = header + cards;
+
+      document.getElementById('admin-add-ex').addEventListener('click', () => openExerciseEditor(null));
+      container.querySelectorAll('.admin-ex-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const ex = adminExercises.find(e => e._id === card.dataset.id);
+          if (ex) openExerciseEditor(ex);
+        });
+      });
+    } catch (err) {
+      console.error('Admin exercises error:', err);
+      container.innerHTML = '<div class="empty-state">Error loading exercises</div>';
+    }
+  }
+
+  function openExerciseEditor(ex) {
+    editingExerciseId = ex ? ex._id : null;
+    const modal = document.getElementById('admin-exercise-modal');
+    const title = document.getElementById('admin-exercise-title');
+    const idInput = document.getElementById('admin-ex-id');
+    const nameEs = document.getElementById('admin-ex-name-es');
+    const nameEn = document.getElementById('admin-ex-name-en');
+    const category = document.getElementById('admin-ex-category');
+    const perSide = document.getElementById('admin-ex-perside');
+    const svgInput = document.getElementById('admin-ex-svg');
+    const preview = document.getElementById('admin-ex-preview');
+    const deleteBtn = document.getElementById('admin-ex-delete');
+
+    title.textContent = ex ? t('adminEditExercise') : t('adminAddExercise');
+    idInput.value = ex ? ex._id : '';
+    idInput.disabled = !!ex;
+    nameEs.value = ex ? ex.name_es : '';
+    nameEn.value = ex ? ex.name_en : '';
+    category.value = ex ? ex.category : 'chest';
+    perSide.checked = ex ? ex.per_side : false;
+
+    const currentSvg = ex?.icon_svg || (typeof EXERCISE_ICONS !== 'undefined' && ex && EXERCISE_ICONS[ex._id]) || '';
+    svgInput.value = currentSvg;
+    preview.innerHTML = currentSvg;
+
+    deleteBtn.classList.toggle('hidden', !ex);
+    modal.classList.remove('hidden');
+  }
+
+  document.getElementById('admin-ex-svg').addEventListener('input', function() {
+    document.getElementById('admin-ex-preview').innerHTML = this.value;
+  });
+
+  document.getElementById('admin-exercise-back').addEventListener('click', () => {
+    document.getElementById('admin-exercise-modal').classList.add('hidden');
+  });
+
+  document.getElementById('admin-ex-cancel').addEventListener('click', () => {
+    document.getElementById('admin-exercise-modal').classList.add('hidden');
+  });
+
+  document.getElementById('admin-ex-delete').addEventListener('click', async () => {
+    if (!editingExerciseId) return;
+    if (!confirm(t('adminConfirmDeleteExercise'))) return;
+    await API.deleteAdminExercise(editingExerciseId);
+    document.getElementById('admin-exercise-modal').classList.add('hidden');
+    showAdminToast(t('adminSaved'));
+    loadAdminExercises();
+  });
+
+  document.getElementById('admin-exercise-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('admin-ex-id').value.trim();
+    const name_es = document.getElementById('admin-ex-name-es').value.trim();
+    const name_en = document.getElementById('admin-ex-name-en').value.trim();
+    const category = document.getElementById('admin-ex-category').value;
+    const per_side = document.getElementById('admin-ex-perside').checked;
+    const icon_svg = document.getElementById('admin-ex-svg').value.trim();
+
+    try {
+      if (editingExerciseId) {
+        await API.updateAdminExercise(editingExerciseId, { name_es, name_en, category, per_side });
+        if (icon_svg !== undefined) {
+          await API.updateExerciseIcon(editingExerciseId, icon_svg);
+        }
+      } else {
+        await API.createAdminExercise({ _id: id, name_es, name_en, category, per_side, icon_svg });
+      }
+      document.getElementById('admin-exercise-modal').classList.add('hidden');
+      showAdminToast(t('adminSaved'));
+      loadAdminExercises();
+      // Refresh main exercise list
+      exercises = await API.getExercises();
+      renderExercises();
+    } catch (err) {
+      console.error('Save exercise error:', err);
+      alert('Error saving exercise');
+    }
+  });
+
+  function showAdminToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'admin-toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1500);
   }
 
   // Start

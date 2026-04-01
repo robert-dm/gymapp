@@ -30,4 +30,14 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = { verifyGoogleToken, generateToken, authMiddleware, User };
+async function adminMiddleware(req, res, next) {
+  try {
+    const user = await User.findById(req.userId).lean();
+    if (!user || !user.is_admin) return res.status(403).json({ error: 'Forbidden' });
+    next();
+  } catch {
+    return res.status(500).json({ error: 'Server error' });
+  }
+}
+
+module.exports = { verifyGoogleToken, generateToken, authMiddleware, adminMiddleware, User };
