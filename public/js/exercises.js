@@ -925,24 +925,24 @@ const EXERCISE_ICONS = {
   </svg>`,
 
   press_tras_nuca_mancuernas: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- bench: seat + backrest -->
-    <line x1="28" y1="54" x2="52" y2="54"/>
-    <line x1="40" y1="54" x2="40" y2="36"/>
-    <line x1="30" y1="54" x2="30" y2="64"/>
-    <line x1="50" y1="54" x2="50" y2="64"/>
-    <!-- person seated -->
-    <circle cx="40" cy="22" r="5"/>
-    <line x1="40" y1="27" x2="40" y2="48"/>
-    <!-- arms behind head with dumbbells spread wide -->
-    <line x1="40" y1="32" x2="24" y2="18"/>
-    <line x1="40" y1="32" x2="56" y2="18"/>
-    <rect x="20" y="14" width="8" height="4" rx="1"/>
-    <rect x="52" y="14" width="8" height="4" rx="1"/>
-    <!-- legs bent forward on seat -->
-    <line x1="40" y1="48" x2="30" y2="54"/>
-    <line x1="40" y1="48" x2="50" y2="54"/>
-    <line x1="30" y1="54" x2="26" y2="66"/>
-    <line x1="50" y1="54" x2="54" y2="66"/>
+    <!-- bench seat -->
+    <line x1="30" y1="50" x2="54" y2="50"/>
+    <line x1="34" y1="50" x2="34" y2="62"/>
+    <line x1="50" y1="50" x2="50" y2="62"/>
+    <!-- head (bent forward) -->
+    <circle cx="40" cy="40" r="4"/>
+    <!-- torso bent forward, parallel to floor -->
+    <line x1="40" y1="44" x2="40" y2="50"/>
+    <!-- arms spread wide to the sides with dumbbells -->
+    <line x1="40" y1="38" x2="18" y2="24"/>
+    <line x1="40" y1="38" x2="62" y2="24"/>
+    <rect x="14" y="20" width="8" height="4" rx="1"/>
+    <rect x="58" y="20" width="8" height="4" rx="1"/>
+    <!-- legs down from seat -->
+    <line x1="40" y1="50" x2="34" y2="62"/>
+    <line x1="40" y1="50" x2="46" y2="62"/>
+    <line x1="34" y1="62" x2="32" y2="68"/>
+    <line x1="46" y1="62" x2="48" y2="68"/>
   </svg>`,
 
   press_arnold: `<svg viewBox="0 0 80 80" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
