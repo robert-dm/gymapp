@@ -164,7 +164,7 @@ router.post('/completed', async (req, res) => {
     const d = date || new Date().toLocaleDateString('en-CA');
     await CompletedExercise.updateOne(
       { user_id: req.userId, exercise_id, date: d },
-      { user_id: req.userId, exercise_id, date: d },
+      { $set: { user_id: req.userId, exercise_id, date: d } },
       { upsert: true }
     );
     res.json({ ok: true });
@@ -289,7 +289,7 @@ router.post('/bodyweight', async (req, res) => {
     const d = date || new Date().toLocaleDateString('en-CA');
     await BodyWeight.updateOne(
       { user_id: req.userId, date: d },
-      { user_id: req.userId, date: d, weight },
+      { $set: { user_id: req.userId, date: d, weight } },
       { upsert: true }
     );
     res.json({ ok: true });

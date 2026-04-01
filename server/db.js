@@ -20,6 +20,7 @@ const workoutLogSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 workoutLogSchema.index({ user_id: 1, date: 1 });
+workoutLogSchema.index({ user_id: 1, exercise_id: 1, date: -1 });
 
 const completedExerciseSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
@@ -58,10 +59,11 @@ const exercises = [
   { _id: 'peso_muerto', name_es: 'Peso muerto', name_en: 'Deadlift', category: 'back' },
   { _id: 'hiperextensiones', name_es: 'Hiperextensiones', name_en: 'Back Extensions', category: 'back' },
   { _id: 'pullover_mancuerna', name_es: 'Pullover con mancuerna', name_en: 'Dumbbell Pullover', category: 'back' },
-  // Shoulders (11)
+  // Shoulders (12)
   { _id: 'press_militar', name_es: 'Press militar', name_en: 'Military Press', category: 'shoulders' },
   { _id: 'press_sentado_mancuernas', name_es: 'Press sentado con mancuernas', name_en: 'Seated Dumbbell Press', category: 'shoulders' },
   { _id: 'press_tras_nuca', name_es: 'Press tras nuca sentado', name_en: 'Behind Neck Press', category: 'shoulders' },
+  { _id: 'press_tras_nuca_mancuernas', name_es: 'Press tras nuca con mancuernas', name_en: 'Seated Behind Neck Dumbbell Press', category: 'shoulders' },
   { _id: 'press_arnold', name_es: 'Press Arnold', name_en: 'Arnold Press', category: 'shoulders' },
   { _id: 'elevaciones_laterales', name_es: 'Elevaciones laterales', name_en: 'Lateral Raises', category: 'shoulders' },
   { _id: 'elevaciones_laterales_polea', name_es: 'Elevaciones laterales en polea', name_en: 'Cable Lateral Raises', category: 'shoulders' },
@@ -109,9 +111,14 @@ const exercises = [
 ];
 
 async function seedExercises() {
-  for (const ex of exercises) {
-    await Exercise.updateOne({ _id: ex._id }, ex, { upsert: true });
-  }
+  const ops = exercises.map(ex => ({
+    updateOne: {
+      filter: { _id: ex._id },
+      update: { $set: ex },
+      upsert: true,
+    }
+  }));
+  await Exercise.bulkWrite(ops);
 }
 
 async function connect() {
