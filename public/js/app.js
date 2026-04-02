@@ -182,6 +182,9 @@
     userRoutine = routine;
     renderAll();
 
+    // Init AI coach (non-blocking)
+    initAICoach();
+
     // --- Body Weight ---
     const bwInput = document.getElementById('bw-input');
     const bwSave = document.getElementById('bw-save');
@@ -1486,6 +1489,184 @@
     toast.textContent = msg;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 1500);
+  }
+
+  // --- AI Coach ---
+  let aiHasKey = false;
+
+  async function initAICoach() {
+    try {
+      const settings = await API.getAISettings();
+      aiHasKey = settings.has_key;
+      const btn = document.getElementById('btn-ai-coach');
+      btn.classList.remove('hidden');
+      btn.title = t('aiCoach');
+    } catch (err) {
+      console.error('AI init error:', err);
+    }
+  }
+
+  document.getElementById('btn-ai-coach').addEventListener('click', openAIModal);
+  document.getElementById('ai-back').addEventListener('click', () => {
+    document.getElementById('ai-modal').classList.add('hidden');
+  });
+
+  async function openAIModal() {
+    const modal = document.getElementById('ai-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('ai-title').textContent = t('aiCoach');
+    document.getElementById('ai-message-input').placeholder = t('aiPlaceholder');
+    document.getElementById('ai-photos-label').textContent = t('aiIncludePhotos');
+
+    // Update settings panel labels
+    document.querySelector('.ai-field label[for="ai-provider-select"]').textContent = t('aiProvider');
+    document.querySelector('.ai-field label[for="ai-key-input"]').textContent = t('aiApiKey');
+    document.getElementById('ai-key-input').placeholder = t('aiApiKeyPlaceholder');
+    document.getElementById('ai-save-key').textContent = t('aiSaveKey');
+    document.getElementById('ai-remove-key').textContent = t('aiRemoveKey');
+
+    await refreshAISettings();
+    updateAIChatState();
+  }
+
+  async function refreshAISettings() {
+    try {
+      const settings = await API.getAISettings();
+      aiHasKey = settings.has_key;
+      document.getElementById('ai-provider-select').value = settings.ai_provider || 'openai';
+      document.getElementById('ai-key-input').value = '';
+      document.getElementById('ai-remove-key').classList.toggle('hidden', !aiHasKey);
+      document.getElementById('ai-key-status').textContent = aiHasKey ? t('aiKeyConfigured') : '';
+    } catch (err) {
+      console.error('AI settings error:', err);
+    }
+  }
+
+  function updateAIChatState() {
+    const noKey = document.getElementById('ai-no-key');
+    const inputArea = document.getElementById('ai-input-area');
+    if (!aiHasKey) {
+      noKey.textContent = t('aiNoKey');
+      noKey.style.display = 'block';
+      inputArea.style.display = 'none';
+    } else {
+      noKey.style.display = 'none';
+      inputArea.style.display = 'block';
+    }
+  }
+
+  // Settings toggle
+  document.getElementById('ai-settings-btn').addEventListener('click', () => {
+    document.getElementById('ai-settings-panel').classList.toggle('hidden');
+  });
+
+  // Save key
+  document.getElementById('ai-save-key').addEventListener('click', async () => {
+    const provider = document.getElementById('ai-provider-select').value;
+    const key = document.getElementById('ai-key-input').value.trim();
+    if (!key) return;
+    try {
+      await API.saveAISettings(provider, key);
+      aiHasKey = true;
+      document.getElementById('ai-key-input').value = '';
+      document.getElementById('ai-key-status').textContent = t('aiKeyConfigured');
+      document.getElementById('ai-remove-key').classList.remove('hidden');
+      document.getElementById('ai-settings-panel').classList.add('hidden');
+      updateAIChatState();
+      showAdminToast(t('adminSaved'));
+    } catch (err) {
+      console.error('Save AI key error:', err);
+    }
+  });
+
+  // Remove key
+  document.getElementById('ai-remove-key').addEventListener('click', async () => {
+    await API.deleteAISettings();
+    aiHasKey = false;
+    document.getElementById('ai-key-status').textContent = '';
+    document.getElementById('ai-remove-key').classList.add('hidden');
+    updateAIChatState();
+  });
+
+  // Enable/disable send
+  document.getElementById('ai-message-input').addEventListener('input', function() {
+    document.getElementById('ai-send').disabled = !this.value.trim();
+  });
+
+  // Send message
+  document.getElementById('ai-send').addEventListener('click', sendAIMessage);
+  document.getElementById('ai-message-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (document.getElementById('ai-message-input').value.trim()) sendAIMessage();
+    }
+  });
+
+  async function sendAIMessage() {
+    const input = document.getElementById('ai-message-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const messagesEl = document.getElementById('ai-messages');
+    const includePhotos = document.getElementById('ai-include-photos').checked;
+
+    // Add user message
+    const userBubble = document.createElement('div');
+    userBubble.className = 'ai-msg ai-msg-user';
+    userBubble.textContent = message;
+    messagesEl.appendChild(userBubble);
+
+    input.value = '';
+    document.getElementById('ai-send').disabled = true;
+
+    // Add thinking indicator
+    const thinkingBubble = document.createElement('div');
+    thinkingBubble.className = 'ai-msg ai-msg-thinking';
+    thinkingBubble.textContent = t('aiThinking');
+    messagesEl.appendChild(thinkingBubble);
+
+    // Scroll to bottom
+    const chat = document.getElementById('ai-chat');
+    chat.scrollTop = chat.scrollHeight;
+
+    try {
+      const result = await API.aiAnalyze(message, includePhotos);
+      thinkingBubble.remove();
+
+      if (result.error) {
+        const errBubble = document.createElement('div');
+        errBubble.className = 'ai-msg ai-msg-error';
+        errBubble.textContent = result.error === 'Invalid API key' ? t('aiInvalidKey') : (result.error || t('aiError'));
+        messagesEl.appendChild(errBubble);
+      } else {
+        const aiBubble = document.createElement('div');
+        aiBubble.className = 'ai-msg ai-msg-ai';
+        aiBubble.innerHTML = formatAIResponse(result.response);
+        messagesEl.appendChild(aiBubble);
+      }
+    } catch (err) {
+      thinkingBubble.remove();
+      const errBubble = document.createElement('div');
+      errBubble.className = 'ai-msg ai-msg-error';
+      errBubble.textContent = t('aiError');
+      messagesEl.appendChild(errBubble);
+    }
+
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function formatAIResponse(text) {
+    // Basic markdown-like formatting
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^### (.+)$/gm, '<strong style="font-size:1.05em">$1</strong>')
+      .replace(/^## (.+)$/gm, '<strong style="font-size:1.1em">$1</strong>')
+      .replace(/^# (.+)$/gm, '<strong style="font-size:1.15em">$1</strong>')
+      .replace(/^- (.+)$/gm, '&bull; $1')
+      .replace(/^\d+\. (.+)$/gm, (m, p1, offset, str) => `${m.match(/^\d+/)[0]}. ${p1}`)
+      .replace(/\n/g, '<br>');
   }
 
   // Start

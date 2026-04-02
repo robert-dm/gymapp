@@ -9,6 +9,7 @@ const Photo = require('./models/Photo');
 const BodyWeight = require('./models/BodyWeight');
 const Routine = require('./models/Routine');
 const ExerciseNote = require('./models/ExerciseNote');
+const UserSettings = require('./models/UserSettings');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -648,5 +649,217 @@ router.delete('/admin/exercises/:id', adminMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// --- AI Settings ---
+
+router.get('/ai/settings', async (req, res) => {
+  try {
+    const settings = await UserSettings.findOne({ user_id: req.userId }).lean();
+    res.json(settings ? { ai_provider: settings.ai_provider, has_key: !!settings.ai_api_key } : { ai_provider: 'openai', has_key: false });
+  } catch (err) {
+    console.error('Get AI settings error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/ai/settings', async (req, res) => {
+  try {
+    const { ai_provider, ai_api_key } = req.body;
+    const update = {};
+    if (ai_provider) update.ai_provider = ai_provider;
+    if (ai_api_key !== undefined) update.ai_api_key = ai_api_key;
+    await UserSettings.updateOne(
+      { user_id: req.userId },
+      { $set: { user_id: req.userId, ...update } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Save AI settings error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/ai/settings', async (req, res) => {
+  try {
+    await UserSettings.deleteOne({ user_id: req.userId });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Delete AI settings error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- AI Analyze ---
+
+router.post('/ai/analyze', async (req, res) => {
+  try {
+    const settings = await UserSettings.findOne({ user_id: req.userId }).lean();
+    if (!settings || !settings.ai_api_key) {
+      return res.status(400).json({ error: 'No API key configured' });
+    }
+
+    const { message, include_photos } = req.body;
+    if (!message) return res.status(400).json({ error: 'Message is required' });
+
+    // Gather user data
+    const now = new Date();
+    const daysBack = 90;
+    const startDate = new Date(now.getTime() - daysBack * 86400000).toLocaleDateString('en-CA');
+
+    const [exerciseList, logs, bodyweights, routine, user] = await Promise.all([
+      Exercise.find().lean(),
+      WorkoutLog.find({ user_id: req.userId, date: { $gte: startDate } }).sort({ date: -1 }).lean(),
+      BodyWeight.find({ user_id: req.userId }).sort({ date: -1 }).limit(30).lean(),
+      Routine.findOne({ user_id: req.userId }).lean(),
+      User.findById(req.userId).lean(),
+    ]);
+
+    const exMap = {};
+    exerciseList.forEach(e => { exMap[e._id] = e; });
+
+    // Build context summary
+    const workoutDays = [...new Set(logs.map(l => l.date))].sort().reverse();
+    const summaryLines = [];
+    summaryLines.push(`User: ${user.name}`);
+    summaryLines.push(`Period: last ${daysBack} days (${startDate} to ${now.toLocaleDateString('en-CA')})`);
+    summaryLines.push(`Total workout days: ${workoutDays.length}`);
+    summaryLines.push(`Total sets logged: ${logs.length}`);
+
+    if (bodyweights.length > 0) {
+      const bwStr = bodyweights.slice(0, 10).map(b => `${b.date}: ${b.weight}kg`).join(', ');
+      summaryLines.push(`Recent body weight: ${bwStr}`);
+    }
+
+    if (routine) {
+      const routineStr = routine.days.map(d => `${d.name_es || d.name_en}: ${d.exercises.length} exercises`).join(', ');
+      summaryLines.push(`Routine: ${routineStr}`);
+    }
+
+    // Per-exercise summary (last 90 days)
+    const exSummary = {};
+    logs.forEach(l => {
+      if (!exSummary[l.exercise_id]) exSummary[l.exercise_id] = { sets: 0, maxWeight: 0, dates: new Set() };
+      const s = exSummary[l.exercise_id];
+      s.sets++;
+      if (l.weight > s.maxWeight) s.maxWeight = l.weight;
+      s.dates.add(l.date);
+    });
+
+    summaryLines.push('\nExercise summary (last 90 days):');
+    for (const [exId, s] of Object.entries(exSummary)) {
+      const name = exMap[exId]?.name_es || exId;
+      summaryLines.push(`- ${name}: ${s.sets} sets, max ${s.maxWeight}kg, ${s.dates.size} sessions`);
+    }
+
+    // Recent workouts detail (last 7 days)
+    const recentDays = workoutDays.slice(0, 7);
+    if (recentDays.length > 0) {
+      summaryLines.push('\nRecent workouts (last 7 sessions):');
+      recentDays.forEach(date => {
+        const dayLogs = logs.filter(l => l.date === date);
+        const exNames = [...new Set(dayLogs.map(l => exMap[l.exercise_id]?.name_es || l.exercise_id))];
+        const totalVol = dayLogs.reduce((sum, l) => sum + (l.reps || 0) * (l.weight || 0) * (l.per_side ? 2 : 1), 0);
+        summaryLines.push(`  ${date}: ${exNames.join(', ')} (${dayLogs.length} sets, ${totalVol}kg volume)`);
+      });
+    }
+
+    const context = summaryLines.join('\n');
+
+    // Build messages for AI
+    const systemPrompt = `You are a knowledgeable and motivating personal gym coach / fitness advisor. The user is tracking their workouts in a gym app. Analyze their data and provide actionable, personalized advice. Be specific — reference their actual exercises, weights, and patterns. Keep responses concise but helpful. Answer in the same language the user writes to you.
+
+Here is the user's workout data:\n\n${context}`;
+
+    // Optionally include recent photos
+    let photoUrls = [];
+    if (include_photos) {
+      const photos = await Photo.find({ user_id: req.userId }).sort({ created_at: -1 }).limit(4).lean();
+      photoUrls = photos.map(p => p.url);
+    }
+
+    let aiResponse;
+
+    if (settings.ai_provider === 'anthropic') {
+      aiResponse = await callAnthropic(settings.ai_api_key, systemPrompt, message, photoUrls);
+    } else {
+      aiResponse = await callOpenAI(settings.ai_api_key, systemPrompt, message, photoUrls);
+    }
+
+    res.json({ response: aiResponse });
+  } catch (err) {
+    console.error('AI analyze error:', err.message);
+    const status = err.status || 500;
+    res.status(status).json({ error: err.userMessage || 'AI request failed' });
+  }
+});
+
+async function callOpenAI(apiKey, systemPrompt, message, photoUrls) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+  ];
+
+  if (photoUrls.length > 0) {
+    const content = [
+      { type: 'text', text: message },
+      ...photoUrls.map(url => ({ type: 'image_url', image_url: { url } })),
+    ];
+    messages.push({ role: 'user', content });
+  } else {
+    messages.push({ role: 'user', content: message });
+  }
+
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: 'gpt-4o', messages, max_tokens: 1500 }),
+  });
+
+  if (!resp.ok) {
+    const err = new Error('OpenAI API error');
+    err.status = resp.status === 401 ? 401 : 502;
+    err.userMessage = resp.status === 401 ? 'Invalid API key' : 'AI service error';
+    throw err;
+  }
+
+  const data = await resp.json();
+  return data.choices[0].message.content;
+}
+
+async function callAnthropic(apiKey, systemPrompt, message, photoUrls) {
+  const content = [];
+
+  if (photoUrls.length > 0) {
+    for (const url of photoUrls) {
+      content.push({ type: 'image', source: { type: 'url', url } });
+    }
+  }
+  content.push({ type: 'text', text: message });
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system: systemPrompt,
+      messages: [{ role: 'user', content }],
+    }),
+  });
+
+  if (!resp.ok) {
+    const err = new Error('Anthropic API error');
+    err.status = resp.status === 401 ? 401 : 502;
+    err.userMessage = resp.status === 401 ? 'Invalid API key' : 'AI service error';
+    throw err;
+  }
+
+  const data = await resp.json();
+  return data.content[0].text;
+}
 
 module.exports = router;

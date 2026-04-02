@@ -246,5 +246,34 @@ const API = {
   async deleteAdminExercise(id) {
     const res = await fetch(`/api/admin/exercises/${id}`, { method: 'DELETE', headers: this._headers() });
     return res.json();
+  },
+
+  // AI
+  async getAISettings() {
+    const res = await fetch('/api/ai/settings', { headers: this._headers() });
+    return res.json();
+  },
+
+  async saveAISettings(provider, apiKey) {
+    const res = await fetch('/api/ai/settings', {
+      method: 'PUT',
+      headers: this._headers(),
+      body: JSON.stringify({ ai_provider: provider, ai_api_key: apiKey })
+    });
+    return res.json();
+  },
+
+  async deleteAISettings() {
+    const res = await fetch('/api/ai/settings', { method: 'DELETE', headers: this._headers() });
+    return res.json();
+  },
+
+  async aiAnalyze(message, includePhotos) {
+    const res = await fetch('/api/ai/analyze', {
+      method: 'POST',
+      headers: this._headers(),
+      body: JSON.stringify({ message, include_photos: includePhotos })
+    });
+    return res.json();
   }
 };
