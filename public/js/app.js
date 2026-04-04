@@ -136,10 +136,12 @@
     const setsBody = document.getElementById('sets-body');
     const inputReps = document.getElementById('input-reps');
     const inputWeight = document.getElementById('input-weight');
+    const inputDuration = document.getElementById('input-duration');
     const btnAddSet = document.getElementById('btn-add-set');
     const btnPerSide = document.getElementById('btn-per-side');
     const perSideTotal = document.getElementById('per-side-total');
     let perSideActive = false;
+    let isDurationExercise = false;
     const btnInstructions = document.getElementById('btn-instructions');
     const instructionsPanel = document.getElementById('instructions-panel');
     const instructionsSteps = document.getElementById('instructions-steps');
@@ -790,9 +792,14 @@
         }
       });
 
-      const exercisesHtml = Object.values(grouped).map(g => {
+      const exercisesHtml = Object.entries(grouped).map(([exId, g]) => {
+        const ex = exercises.find(e => e.id === exId);
+        const isDur = ex && ex.uses_duration;
         const check = g.completed ? `<span class="completed-check">&#10003;</span>` : '';
         const setsHtml = g.sets.map(s => {
+          if (isDur) {
+            return `${t('set')} ${s.set_number}: ${s.reps || '-'} reps · ${s.duration || '-'} ${t('durationUnit')}`;
+          }
           let w = s.weight || '-';
           if (s.per_side && s.weight) w = `${s.weight}/${lang === 'es' ? 'lado' : 'side'} (${s.weight * 2} total)`;
           else if (s.weight) w = `${s.weight} total`;
@@ -911,14 +918,19 @@
         grouped[log.exercise_id].sets.push(log);
       });
 
-      historyLog.innerHTML = Object.values(grouped).map(g => `
+      historyLog.innerHTML = Object.entries(grouped).map(([exId, g]) => {
+        const ex = exercises.find(e => e.id === exId);
+        const isDur = ex && ex.uses_duration;
+        return `
         <div class="history-log-entry">
           <div class="exercise-name">${g.name}</div>
           <div class="exercise-sets">${g.sets.map(s =>
-            `${t('set')} ${s.set_number}: ${s.reps || '-'} reps x ${s.weight || '-'} kg`
+            isDur
+              ? `${t('set')} ${s.set_number}: ${s.reps || '-'} reps · ${s.duration || '-'} ${t('durationUnit')}`
+              : `${t('set')} ${s.set_number}: ${s.reps || '-'} reps x ${s.weight || '-'} kg`
           ).join('<br>')}</div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     // Modal back
@@ -958,14 +970,15 @@
     btnAddSet.addEventListener('click', async () => {
       if (!currentExercise) return;
       const reps = parseInt(inputReps.value) || null;
-      const weight = parseFloat(inputWeight.value) || null;
-      if (!reps && !weight) return;
+      const weight = isDurationExercise ? null : (parseFloat(inputWeight.value) || null);
+      const duration = isDurationExercise ? (parseInt(inputDuration.value) || null) : null;
+      if (!reps && !weight && !duration) return;
 
       try {
         const exerciseLogs = todayLogs.filter(l => l.exercise_id === currentExercise.id);
         const nextSet = exerciseLogs.length + 1;
 
-        const result = await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive);
+        const result = await API.addLog(currentExercise.id, nextSet, reps, weight, selectedDate, perSideActive, duration);
 
         // Append locally instead of refetching all logs
         todayLogs.push({
@@ -974,6 +987,7 @@
           set_number: nextSet,
           reps,
           weight,
+          duration,
           per_side: perSideActive,
           date: selectedDate,
         });
@@ -986,7 +1000,7 @@
       }
     });
 
-    [inputReps, inputWeight].forEach(input => {
+    [inputReps, inputWeight, inputDuration].forEach(input => {
       input.addEventListener('keydown', e => {
         if (e.key === 'Enter') btnAddSet.click();
       });
@@ -1090,6 +1104,22 @@
       exerciseNoteInput.value = '';
       exerciseNoteInput.placeholder = t('notePlaceholder');
 
+      // Duration vs weight mode
+      isDurationExercise = ex.uses_duration || false;
+      if (isDurationExercise) {
+        inputWeight.classList.add('hidden');
+        btnPerSide.classList.add('hidden');
+        perSideTotal.classList.add('hidden');
+        inputDuration.classList.remove('hidden');
+        inputDuration.placeholder = t('durationPlaceholder');
+        document.getElementById('th-weight').textContent = t('duration');
+      } else {
+        inputWeight.classList.remove('hidden');
+        btnPerSide.classList.remove('hidden');
+        inputDuration.classList.add('hidden');
+        document.getElementById('th-weight').textContent = t('weight');
+      }
+
       // Per-side default from exercise
       perSideActive = ex.per_side || false;
       updatePerSideUI();
@@ -1128,19 +1158,24 @@
       }
       const lang = getLang();
       setsBody.innerHTML = exerciseLogs.map(log => {
-        let weightDisplay = log.weight || '-';
-        if (log.weight) {
-          if (log.per_side) {
-            weightDisplay = `${log.weight} <span class="per-side-badge">/${lang === 'es' ? 'lado' : 'side'}</span> <span style="color:var(--text-secondary);font-size:0.8rem">(${log.weight * 2} total)</span>`;
-          } else {
-            weightDisplay = `${log.weight} <span class="per-side-badge">total</span>`;
+        let thirdCol;
+        if (isDurationExercise) {
+          thirdCol = log.duration ? `${log.duration} ${t('durationUnit')}` : '-';
+        } else {
+          thirdCol = log.weight || '-';
+          if (log.weight) {
+            if (log.per_side) {
+              thirdCol = `${log.weight} <span class="per-side-badge">/${lang === 'es' ? 'lado' : 'side'}</span> <span style="color:var(--text-secondary);font-size:0.8rem">(${log.weight * 2} total)</span>`;
+            } else {
+              thirdCol = `${log.weight} <span class="per-side-badge">total</span>`;
+            }
           }
         }
         return `
         <tr>
           <td class="set-num">${log.set_number}</td>
           <td>${log.reps || '-'}</td>
-          <td>${weightDisplay}</td>
+          <td>${thirdCol}</td>
           <td><button class="btn-delete" data-id="${log.id}">&times;</button></td>
         </tr>
         `;
@@ -1166,29 +1201,31 @@
         return;
       }
 
-      // Group by date, get max weight per session
+      const unit = isDurationExercise ? t('durationUnit') : 'kg';
+
+      // Group by date, get max value per session
       const sessionMap = {};
       history.forEach(h => {
-        const w = h.weight || 0;
-        if (!sessionMap[h.date] || w > sessionMap[h.date]) sessionMap[h.date] = w;
+        const v = isDurationExercise ? (h.duration || 0) : (h.weight || 0);
+        if (!sessionMap[h.date] || v > sessionMap[h.date]) sessionMap[h.date] = v;
       });
 
       const sessions = Object.entries(sessionMap)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, weight]) => ({ date, weight }));
+        .map(([date, val]) => ({ date, val }));
 
-      if (sessions.length < 2 || sessions.every(s => s.weight === 0)) {
+      if (sessions.length < 2 || sessions.every(s => s.val === 0)) {
         progressionChart.innerHTML = `<div class="prog-empty">${t('progressionNoData')}</div>`;
         return;
       }
 
-      const weights = sessions.map(s => s.weight);
-      const minW = Math.min(...weights.filter(w => w > 0));
-      const maxW = Math.max(...weights);
+      const values = sessions.map(s => s.val);
+      const minW = Math.min(...values.filter(v => v > 0));
+      const maxW = Math.max(...values);
       const range = maxW - minW || 1;
-      const first = sessions.find(s => s.weight > 0);
+      const first = sessions.find(s => s.val > 0);
       const last = sessions[sessions.length - 1];
-      const diff = first ? last.weight - first.weight : 0;
+      const diff = first ? last.val - first.val : 0;
       const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
       const totalSessions = sessions.length;
 
@@ -1202,11 +1239,11 @@
       let html = '<div class="prog-chart-container">';
       html += '<div class="prog-chart-bars">';
       sessions.forEach(s => {
-        const h = s.weight > 0 ? Math.max(12, ((s.weight - minW + range * 0.1) / (range * 1.1)) * 100) : 5;
-        const isPR = s.weight === maxW && s.weight > 0;
+        const h = s.val > 0 ? Math.max(12, ((s.val - minW + range * 0.1) / (range * 1.1)) * 100) : 5;
+        const isPR = s.val === maxW && s.val > 0;
         const shortDate = s.date.slice(5);
         html += `<div class="prog-bar${isPR ? ' prog-bar-pr' : ''}" style="height:${h}%">
-          <span class="prog-tip">${shortDate}: ${s.weight}kg${isPR ? ' PR!' : ''}</span>
+          <span class="prog-tip">${shortDate}: ${s.val}${unit}${isPR ? ' PR!' : ''}</span>
         </div>`;
       });
       html += '</div>';
@@ -1221,13 +1258,14 @@
 
       // Summary stats
       const lang = getLang();
+      const maxLabel = isDurationExercise ? (lang === 'es' ? 'Máx duración' : 'Max duration') : t('dashMaxWeight');
       html += `<div class="prog-summary">
         <div class="prog-stat">
-          <div class="prog-stat-value">${maxW}<span style="font-size:0.7rem">kg</span></div>
-          <div class="prog-stat-label">${t('dashMaxWeight')}</div>
+          <div class="prog-stat-value">${maxW}<span style="font-size:0.7rem">${unit}</span></div>
+          <div class="prog-stat-label">${maxLabel}</div>
         </div>
         <div class="prog-stat">
-          <div class="prog-stat-value ${diff > 0 ? 'dash-up' : diff < 0 ? 'dash-down' : ''}">${diffStr}<span style="font-size:0.7rem">kg</span></div>
+          <div class="prog-stat-value ${diff > 0 ? 'dash-up' : diff < 0 ? 'dash-down' : ''}">${diffStr}<span style="font-size:0.7rem">${unit}</span></div>
           <div class="prog-stat-label">${lang === 'es' ? 'Cambio' : 'Change'}</div>
         </div>
         <div class="prog-stat">
@@ -1266,6 +1304,9 @@
         <div class="history-day">
           <div class="date">${date}</div>
           <div class="sets">${grouped[date].map(s => {
+            if (isDurationExercise) {
+              return `${t('set')} ${s.set_number}: ${s.reps || '-'} reps · ${s.duration || '-'} ${t('durationUnit')}`;
+            }
             let w = s.weight || '-';
             if (s.per_side && s.weight) w = `${s.weight}/${lang === 'es' ? 'lado' : 'side'} (${s.weight * 2} total)`;
             else if (s.weight) w = `${s.weight} total`;
@@ -1378,7 +1419,7 @@
             <div class="admin-ex-icon">${iconHtml}</div>
             <div class="admin-ex-info">
               <div class="admin-ex-name">${name}</div>
-              <div class="admin-ex-detail">${ex._id}${ex.per_side ? ' · per side' : ''}</div>
+              <div class="admin-ex-detail">${ex._id}${ex.per_side ? ' · per side' : ''}${ex.uses_duration ? ' · duration' : ''}</div>
             </div>
             <span class="admin-ex-category">${ex.category}</span>
           </div>
@@ -1409,6 +1450,7 @@
     const nameEn = document.getElementById('admin-ex-name-en');
     const category = document.getElementById('admin-ex-category');
     const perSide = document.getElementById('admin-ex-perside');
+    const usesDuration = document.getElementById('admin-ex-duration');
     const svgInput = document.getElementById('admin-ex-svg');
     const preview = document.getElementById('admin-ex-preview');
     const deleteBtn = document.getElementById('admin-ex-delete');
@@ -1420,6 +1462,7 @@
     nameEn.value = ex ? ex.name_en : '';
     category.value = ex ? ex.category : 'chest';
     perSide.checked = ex ? ex.per_side : false;
+    usesDuration.checked = ex ? ex.uses_duration : false;
 
     const currentSvg = ex?.icon_svg || (typeof EXERCISE_ICONS !== 'undefined' && ex && EXERCISE_ICONS[ex._id]) || '';
     svgInput.value = currentSvg;
@@ -1457,16 +1500,17 @@
     const name_en = document.getElementById('admin-ex-name-en').value.trim();
     const category = document.getElementById('admin-ex-category').value;
     const per_side = document.getElementById('admin-ex-perside').checked;
+    const uses_duration = document.getElementById('admin-ex-duration').checked;
     const icon_svg = document.getElementById('admin-ex-svg').value.trim();
 
     try {
       if (editingExerciseId) {
-        await API.updateAdminExercise(editingExerciseId, { name_es, name_en, category, per_side });
+        await API.updateAdminExercise(editingExerciseId, { name_es, name_en, category, per_side, uses_duration });
         if (icon_svg !== undefined) {
           await API.updateExerciseIcon(editingExerciseId, icon_svg);
         }
       } else {
-        await API.createAdminExercise({ _id: id, name_es, name_en, category, per_side, icon_svg });
+        await API.createAdminExercise({ _id: id, name_es, name_en, category, per_side, uses_duration, icon_svg });
       }
       document.getElementById('admin-exercise-modal').classList.add('hidden');
       showAdminToast(t('adminSaved'));

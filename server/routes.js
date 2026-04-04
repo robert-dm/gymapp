@@ -61,7 +61,7 @@ router.use(authMiddleware);
 router.get('/exercises', async (req, res) => {
   try {
     const rows = await Exercise.find().sort({ category: 1, name_es: 1 }).lean();
-    res.json(rows.map(r => ({ id: r._id, name_es: r.name_es, name_en: r.name_en, category: r.category, per_side: r.per_side || false, icon_svg: r.icon_svg || null })));
+    res.json(rows.map(r => ({ id: r._id, name_es: r.name_es, name_en: r.name_en, category: r.category, per_side: r.per_side || false, uses_duration: r.uses_duration || false, icon_svg: r.icon_svg || null })));
   } catch (err) {
     console.error('Get exercises error:', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -71,7 +71,7 @@ router.get('/exercises', async (req, res) => {
 // Save a workout set
 router.post('/logs', async (req, res) => {
   try {
-    const { exercise_id, set_number, reps, weight, per_side, date } = req.body;
+    const { exercise_id, set_number, reps, weight, duration, per_side, date } = req.body;
     if (!exercise_id || !set_number) {
       return res.status(400).json({ error: 'exercise_id and set_number are required' });
     }
@@ -81,6 +81,7 @@ router.post('/logs', async (req, res) => {
       set_number,
       reps: reps || null,
       weight: weight || null,
+      duration: duration || null,
       per_side: per_side || false,
       date: date || new Date().toLocaleDateString('en-CA'),
     });
@@ -107,6 +108,7 @@ router.get('/logs', async (req, res) => {
       set_number: l.set_number,
       reps: l.reps,
       weight: l.weight,
+      duration: l.duration || null,
       per_side: l.per_side || false,
       created_at: l.created_at,
       date: l.date,
@@ -128,7 +130,7 @@ router.get('/logs/history/:exerciseId', async (req, res) => {
       .sort({ date: -1, set_number: 1 })
       .limit(200)
       .lean();
-    res.json(rows.map(r => ({ date: r.date, set_number: r.set_number, reps: r.reps, weight: r.weight, per_side: r.per_side || false })));
+    res.json(rows.map(r => ({ date: r.date, set_number: r.set_number, reps: r.reps, weight: r.weight, duration: r.duration || null, per_side: r.per_side || false })));
   } catch (err) {
     console.error('Get history error:', err.message);
     res.status(500).json({ error: 'Server error' });
@@ -598,13 +600,13 @@ router.get('/admin/exercises', adminMiddleware, async (req, res) => {
 
 router.post('/admin/exercises', adminMiddleware, async (req, res) => {
   try {
-    const { _id, name_es, name_en, category, per_side, icon_svg } = req.body;
+    const { _id, name_es, name_en, category, per_side, uses_duration, icon_svg } = req.body;
     if (!_id || !name_es || !name_en || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     const existing = await Exercise.findById(_id);
     if (existing) return res.status(409).json({ error: 'Exercise ID already exists' });
-    const exercise = await Exercise.create({ _id, name_es, name_en, category, per_side: per_side || false, icon_svg: icon_svg || undefined });
+    const exercise = await Exercise.create({ _id, name_es, name_en, category, per_side: per_side || false, uses_duration: uses_duration || false, icon_svg: icon_svg || undefined });
     res.json(exercise);
   } catch (err) {
     console.error('Admin create exercise error:', err.message);
@@ -614,12 +616,13 @@ router.post('/admin/exercises', adminMiddleware, async (req, res) => {
 
 router.put('/admin/exercises/:id', adminMiddleware, async (req, res) => {
   try {
-    const { name_es, name_en, category, per_side } = req.body;
+    const { name_es, name_en, category, per_side, uses_duration } = req.body;
     const update = {};
     if (name_es !== undefined) update.name_es = name_es;
     if (name_en !== undefined) update.name_en = name_en;
     if (category !== undefined) update.category = category;
     if (per_side !== undefined) update.per_side = per_side;
+    if (uses_duration !== undefined) update.uses_duration = uses_duration;
     await Exercise.updateOne({ _id: req.params.id }, { $set: update });
     res.json({ ok: true });
   } catch (err) {

@@ -7,6 +7,7 @@ const exerciseSchema = new mongoose.Schema({
   name_en: { type: String, required: true },
   category: { type: String, required: true },
   per_side: { type: Boolean, default: false },
+  uses_duration: { type: Boolean, default: false },
   icon_svg: { type: String },
 }, { _id: false });
 
@@ -16,6 +17,7 @@ const workoutLogSchema = new mongoose.Schema({
   set_number: { type: Number, required: true },
   reps: Number,
   weight: Number,
+  duration: Number,
   per_side: { type: Boolean, default: false },
   date: { type: String, default: () => new Date().toLocaleDateString('en-CA') },
   created_at: { type: Date, default: Date.now },
@@ -108,7 +110,7 @@ const exercises = [
   { _id: 'abdominales', name_es: 'Abdominales', name_en: 'Crunches', category: 'abs' },
   { _id: 'elevacion_piernas', name_es: 'Elevación de piernas', name_en: 'Leg Raises', category: 'abs' },
   { _id: 'oblicuos', name_es: 'Oblicuos', name_en: 'Oblique Crunches', category: 'abs' },
-  { _id: 'plancha', name_es: 'Plancha', name_en: 'Plank', category: 'abs' },
+  { _id: 'plancha', name_es: 'Plancha', name_en: 'Plank', category: 'abs', uses_duration: true },
 ];
 
 async function seedExercises() {

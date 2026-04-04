@@ -129,6 +129,7 @@
             <input type="number" id="input-reps" min="1" max="999" placeholder="Reps">
             <input type="number" id="input-weight" min="0" max="9999" step="0.5" placeholder="kg">
             <button type="button" id="btn-per-side" class="btn-per-side" title="Por lado / Per side">kg</button>
+            <input type="number" id="input-duration" min="1" max="9999" placeholder="seg" class="hidden">
             <button id="btn-add-set" class="btn-primary" data-i18n="addSet">+ Serie</button>
           </div>
           <div id="per-side-total" class="per-side-total hidden"></div>
@@ -268,6 +269,10 @@
             <div class="admin-field admin-field-inline">
               <label for="admin-ex-perside">Por lado / Per side</label>
               <input type="checkbox" id="admin-ex-perside">
+            </div>
+            <div class="admin-field admin-field-inline">
+              <label for="admin-ex-duration" data-i18n="adminUsesDuration">Usa duración (seg)</label>
+              <input type="checkbox" id="admin-ex-duration">
             </div>
             <div class="admin-field">
               <label for="admin-ex-svg">SVG Icon</label>
