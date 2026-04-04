@@ -53,8 +53,8 @@ const API = {
     return res.json();
   },
 
-  async addLog(exerciseId, setNumber, reps, weight, date, perSide) {
-    const body = { exercise_id: exerciseId, set_number: setNumber, reps, weight, per_side: perSide || false };
+  async addLog(exerciseId, setNumber, reps, weight, date, perSide, duration) {
+    const body = { exercise_id: exerciseId, set_number: setNumber, reps, weight, duration: duration || null, per_side: perSide || false };
     if (date) body.date = date;
     const res = await fetch('/api/logs', {
       method: 'POST',
