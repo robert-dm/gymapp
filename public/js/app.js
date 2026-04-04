@@ -1112,6 +1112,20 @@
       renderProgressionChart(history);
       renderExerciseHistory(history);
 
+      // Prefill inputs from last recorded session for this exercise
+      if (history.length > 0) {
+        const lastDate = history[0].date;
+        const lastSession = history.filter(h => h.date === lastDate);
+        const lastSet = lastSession[lastSession.length - 1];
+        inputReps.value = lastSet.reps || '';
+        inputWeight.value = lastSet.weight || '';
+        perSideActive = lastSet.per_side || false;
+        updatePerSideUI();
+      } else {
+        inputReps.value = '';
+        inputWeight.value = '';
+      }
+
       inputReps.focus();
     }
 
